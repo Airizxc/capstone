@@ -1,0 +1,165 @@
+/* Co-Curricular module — theme-aware styles
+   Uses global theme tokens (defined in assets/css/theme.css)
+   Do NOT hard-code light/dark colors here. */
+
+.cocurricular-status-badge { letter-spacing: 0.045em; }
+.cocurricular-filter-card .form-control, .cocurricular-filter-card .form-select {
+    min-height: 48px;
+}
+.cocurricular-card .card-body {
+    min-height: 220px;
+}
+.cocurricular-detail-list li {
+    list-style: none;
+    margin-bottom: 0.75rem;
+}
+.cocurricular-club-card .card-title {
+    margin-bottom: 0.75rem;
+}
+.cocurricular-card .badge {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+}
+
+.cocurricular-modal .modal-dialog {
+    max-width: 860px;
+    width: 100%;
+}
+.cocurricular-modal .modal-content {
+    border-radius: 1rem;
+    border: 1px solid var(--sms-border);
+    background: var(--bs-modal-bg);
+    color: var(--bs-modal-color);
+}
+.cocurricular-modal .modal-header,
+.cocurricular-modal .modal-footer {
+    border-color: var(--sms-border);
+}
+.cocurricular-modal .modal-title { font-size: 1.1rem; font-weight: 700; }
+.cocurricular-modal-body .badge { font-size: 0.75rem; }
+.cocurricular-form-section .form-label { font-weight: 600; }
+
+.cocurricular-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.cocurricular-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    background: var(--bs-card-bg);
+    border: 1px solid var(--sms-border);
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    /* per-step mask that matches the step background */
+    --cc-step-bg: var(--bs-card-bg);
+}
+.cocurricular-step.is-active {
+    border-color: var(--sms-primary);
+    background: rgba(var(--bs-primary-rgb), 0.08);
+    --cc-step-bg: rgba(var(--bs-primary-rgb), 0.08);
+}
+
+.cocurricular-step-icon {
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background: var(--sms-primary);
+    color: #fff;
+    font-weight: 700;
+    position: relative;
+    z-index: 3;
+    /* Use a solid outer spread (box-shadow) matching the step background
+       to mask the step border where the icon overlaps. This avoids
+       aliasing issues that sometimes appear with outline. */
+    box-shadow: 0 0 0 6px var(--cc-step-bg);
+    border: none;
+}
+.cocurricular-step-icon > * { z-index: 3; }
+
+.cocurricular-step-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cocurricular-step-line {
+    width: 2rem;
+    height: 2px;
+    background: var(--sms-border);
+    position: relative;
+    z-index: 1;
+}
+
+.cocurricular-step-panel { transition: opacity 0.2s ease; }
+.cocurricular-step-panel.is-active { opacity: 1; }
+.cocurricular-step-panel:not(.is-active) { opacity: 0; }
+
+.cocurricular-success-state { max-width: 760px; }
+
+/* Responsive */
+@media (max-width: 1199.98px) {
+    .cocurricular-modal .modal-dialog,
+    .cocurricular-modal-dialog { max-width: 100%; width: 100%; margin: 1.5rem auto; }
+}
+@media (max-width: 991.98px) {
+    .cocurricular-card .card-body { min-height: auto; }
+    .cocurricular-filter-card .card-body,
+    .cocurricular-card .card-body,
+    .cocurricular-modal .modal-body { padding-left: 1rem; padding-right: 1rem; }
+    .cocurricular-modal .modal-header,
+    .cocurricular-modal .modal-footer { padding-left: 1rem; padding-right: 1rem; }
+}
+@media (max-width: 767.98px) {
+    .cocurricular-stepper { flex-wrap: wrap; justify-content: center; }
+    .cocurricular-step { flex: 1 1 100%; min-width: 0; }
+    .cocurricular-step-label { white-space: normal; }
+    .cocurricular-modal { padding: 0.75rem; }
+    .cocurricular-modal .modal-dialog,
+    .cocurricular-modal-dialog { margin: 0.75rem auto; width: calc(100% - 1.5rem); }
+    .cocurricular-modal .modal-content { max-height: calc(100vh - 1.5rem); }
+    .cocurricular-modal .modal-body { max-height: calc(100vh - 10rem); overflow-y: auto; padding-top: 1rem; padding-bottom: 1rem; }
+    .cocurricular-filter-card .form-label,
+    .cocurricular-step .cocurricular-step-label { font-size: 0.95rem; }
+}
+@media (max-width: 575.98px) {
+    .cocurricular-step { padding: 0.65rem 0.85rem; }
+    .cocurricular-step-icon { width: 1.8rem; height: 1.8rem; }
+    .cocurricular-step-label { font-size: 0.93rem; }
+    .cocurricular-modal .modal-dialog,
+    .cocurricular-modal-dialog { width: calc(100% - 1rem); }
+    .cocurricular-modal .modal-body { max-height: calc(100vh - 9rem); }
+    .cocurricular-filter-card .form-control,
+    .cocurricular-filter-card .form-select { min-height: 44px; }
+    .cocurricular-step-icon { box-shadow: 0 0 0 5px var(--cc-step-bg); }
+}
+
+/* Success modal animation and styling */
+.cocurricular-success-modal .modal-content {
+    background: var(--bs-modal-bg);
+    color: var(--bs-modal-color);
+    border-radius: 1rem;
+    border: 1px solid var(--sms-border);
+}
+.cocurricular-success-animation { width: 84px; height: 84px; margin: 0 auto; }
+.cocurricular-success-svg { width: 84px; height: 84px; display: block; }
+.cocurricular-success-svg circle { fill: none; stroke: rgba(var(--bs-success-rgb), 0.18); stroke-width: 6; }
+.cocurricular-success-svg .success-circle { stroke-dasharray: 240; stroke-dashoffset: 240; transition: stroke-dashoffset 0.6s ease 0s; }
+.cocurricular-success-svg .success-check { fill: none; stroke: var(--bs-success, #198754); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 48; stroke-dashoffset: 48; transition: stroke-dashoffset 0.45s ease 0.15s; }
+.cocurricular-success-svg.play .success-circle { stroke-dashoffset: 0; }
+.cocurricular-success-svg.play .success-check { stroke-dashoffset: 0; }
+.cocurricular-success-modal .modal-body h5 { color: var(--bs-modal-color); }
+.cocurricular-success-modal .modal-body p { color: var(--sms-text-muted); }
+
+@media (max-width: 575.98px) {
+    .cocurricular-success-animation { width: 64px; height: 64px; }
+    .cocurricular-success-svg { width: 64px; height: 64px; }
+}
