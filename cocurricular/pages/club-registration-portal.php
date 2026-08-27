@@ -6,13 +6,25 @@
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../includes/cocurricular-db.php';
 
+if (getCurrentUserRoleKey() !== 'student') {
+    header('Location: ' . BASE_URL . '/dashboard/index.php');
+    exit;
+}
+
 $pageTitle    = 'Club Registration Portal';
-$activeModule = 'cocurricular';
+$isStudentPortalView = true;
+$activeModule = $isStudentPortalView ? 'student_portal' : 'cocurricular';
 $activePage   = 'club-registration-portal';
-$breadcrumbs  = [
-    ['label' => 'Co-Curricular', 'url' => BASE_URL . '/modules/cocurricular/index.php'],
-    ['label' => 'Club Registration Portal', 'url' => null],
-];
+$breadcrumbs  = $isStudentPortalView
+    ? [
+        ['label' => 'Student Portal', 'url' => BASE_URL . '/modules/student-portal/pages/dashboard.php'],
+        ['label' => 'Co-Curricular', 'url' => BASE_URL . '/modules/cocurricular/pages/club-directory.php'],
+        ['label' => 'Club Registration Portal', 'url' => null],
+    ]
+    : [
+        ['label' => 'Co-Curricular', 'url' => BASE_URL . '/modules/cocurricular/index.php'],
+        ['label' => 'Club Registration Portal', 'url' => null],
+    ];
 
 $clubId = (int) ($_GET['club_id'] ?? 0);
 $club = $clubId ? cocurricularGetClubById($clubId) : null;
