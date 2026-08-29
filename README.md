@@ -1,2 +1,0 @@
-# capstone
-for capstone only
