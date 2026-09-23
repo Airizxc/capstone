@@ -481,25 +481,8 @@
                 let registration = null;
                 if ('serviceWorker' in navigator) {
                     try {
-                        let resolvedSwPath = swPath;
-                        if (config && config.apiKey && resolvedSwPath.indexOf('?') === -1) {
-                            try {
-                                const swParams = new URLSearchParams({
-                                    apiKey: config.apiKey || '',
-                                    authDomain: config.authDomain || '',
-                                    projectId: config.projectId || '',
-                                    storageBucket: config.storageBucket || '',
-                                    messagingSenderId: config.messagingSenderId || '',
-                                    appId: config.appId || ''
-                                });
-                                resolvedSwPath += '?' + swParams.toString();
-                            } catch (e) {
-                                // fallback to base path
-                            }
-                        }
-
-                        await navigator.serviceWorker.register(resolvedSwPath, { scope: swScope }).catch(function () {
-                            return navigator.serviceWorker.register(resolvedSwPath).catch(function () { return null; });
+                        await navigator.serviceWorker.register(swPath, { scope: swScope }).catch(function () {
+                            return navigator.serviceWorker.register(swPath).catch(function () { return null; });
                         });
                         registration = await navigator.serviceWorker.ready;
                     } catch (swErr) {
