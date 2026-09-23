@@ -1,0 +1,29 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Private credentials and Service Accounts
+cocurricular/config/firebase-service-account.json
+!cocurricular/config/firebase-service-account.example.json
+
+# Local configuration overrides
+config/local.php
+cocurricular/config/cocurricular-config.php
+!cocurricular/config/cocurricular-config.example.php
+
+# Storage and logs
+storage/keys/*
+!storage/keys/.gitignore
+storage/backups/*
+!storage/backups/.gitignore
+storage/uploads/*
+!storage/uploads/.gitignore
+*.log
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

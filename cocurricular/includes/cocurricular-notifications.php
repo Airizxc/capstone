@@ -22,14 +22,29 @@ function cocurricularNormalizeVapidKey(?string $key): string
  */
 function cocurricularGetFirebasePublicConfig(): array
 {
-    $rawVapid = defined('FIREBASE_VAPID_KEY') ? (string) FIREBASE_VAPID_KEY : (string) sms2_env('FIREBASE_VAPID_KEY', 'BAOUkvB4IfiTZltQ-Luku6yKX6BlEOFva_jFmHbDxJ2MB36MBL5uGjOH3xeIbIlIU6nyh6PtY6OIum3kA_SLQXM');
+    $rawVapid = defined('FIREBASE_VAPID_KEY') && FIREBASE_VAPID_KEY !== ''
+        ? (string) FIREBASE_VAPID_KEY
+        : (string) cocurricular_env('FIREBASE_VAPID_KEY', '');
+
     return [
-        'apiKey' => defined('FIREBASE_API_KEY') ? (string) FIREBASE_API_KEY : (string) sms2_env('FIREBASE_API_KEY', 'AIzaSyBBxVoH7mLn_u1xZwTywNczCdkMLfpXQqc'),
-        'authDomain' => defined('FIREBASE_AUTH_DOMAIN') ? (string) FIREBASE_AUTH_DOMAIN : (string) sms2_env('FIREBASE_AUTH_DOMAIN', 'co-curricular-management-ed6aa.firebaseapp.com'),
-        'projectId' => defined('FIREBASE_PROJECT_ID') ? (string) FIREBASE_PROJECT_ID : (string) sms2_env('FIREBASE_PROJECT_ID', 'co-curricular-management-ed6aa'),
-        'storageBucket' => defined('FIREBASE_STORAGE_BUCKET') ? (string) FIREBASE_STORAGE_BUCKET : (string) sms2_env('FIREBASE_STORAGE_BUCKET', 'co-curricular-management-ed6aa.firebasestorage.app'),
-        'messagingSenderId' => defined('FIREBASE_MESSAGING_SENDER_ID') ? (string) FIREBASE_MESSAGING_SENDER_ID : (string) sms2_env('FIREBASE_MESSAGING_SENDER_ID', '982710359986'),
-        'appId' => defined('FIREBASE_APP_ID') ? (string) FIREBASE_APP_ID : (string) sms2_env('FIREBASE_APP_ID', '1:982710359986:web:bad1f738d2a5577bd0f6ab'),
+        'apiKey' => defined('FIREBASE_API_KEY') && FIREBASE_API_KEY !== ''
+            ? (string) FIREBASE_API_KEY
+            : (string) cocurricular_env('FIREBASE_API_KEY', ''),
+        'authDomain' => defined('FIREBASE_AUTH_DOMAIN') && FIREBASE_AUTH_DOMAIN !== ''
+            ? (string) FIREBASE_AUTH_DOMAIN
+            : (string) cocurricular_env('FIREBASE_AUTH_DOMAIN', ''),
+        'projectId' => defined('FIREBASE_PROJECT_ID') && FIREBASE_PROJECT_ID !== ''
+            ? (string) FIREBASE_PROJECT_ID
+            : (string) cocurricular_env('FIREBASE_PROJECT_ID', ''),
+        'storageBucket' => defined('FIREBASE_STORAGE_BUCKET') && FIREBASE_STORAGE_BUCKET !== ''
+            ? (string) FIREBASE_STORAGE_BUCKET
+            : (string) cocurricular_env('FIREBASE_STORAGE_BUCKET', ''),
+        'messagingSenderId' => defined('FIREBASE_MESSAGING_SENDER_ID') && FIREBASE_MESSAGING_SENDER_ID !== ''
+            ? (string) FIREBASE_MESSAGING_SENDER_ID
+            : (string) cocurricular_env('FIREBASE_MESSAGING_SENDER_ID', ''),
+        'appId' => defined('FIREBASE_APP_ID') && FIREBASE_APP_ID !== ''
+            ? (string) FIREBASE_APP_ID
+            : (string) cocurricular_env('FIREBASE_APP_ID', ''),
         'vapidKey' => cocurricularNormalizeVapidKey($rawVapid),
     ];
 }

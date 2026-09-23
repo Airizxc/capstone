@@ -1,0 +1,26 @@
+# ==============================================================================
+# Co-Curricular Module — Git Ignore Configuration
+# ==============================================================================
+
+# Environment files containing sensitive credentials
+.env
+.env.*
+.env.local
+.env.production
+.env.staging
+
+# Explicitly ensure template is tracked
+!.env.example
+
+# Private Firebase service account credentials
+config/firebase-service-account.json
+!config/firebase-service-account.example.json
+
+# Local config overrides
+config/cocurricular-config.local.php
+
+# Logs, cache, and OS artifacts
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini

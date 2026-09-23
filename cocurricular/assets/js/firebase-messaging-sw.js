@@ -18,22 +18,43 @@ importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js'
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
 // Initialize Firebase inside the Service Worker
-// Public client credentials used for message routing
-firebase.initializeApp({
-    apiKey: "AIzaSyBBxVoH7mLn_u1xZwTywNczCdkMLfpXQqc",
-    authDomain: "co-curricular-management-ed6aa.firebaseapp.com",
-    projectId: "co-curricular-management-ed6aa",
-    storageBucket: "co-curricular-management-ed6aa.firebasestorage.app",
-    messagingSenderId: "982710359986",
-    appId: "1:982710359986:web:bad1f738d2a5577bd0f6ab"
-});
+// Extracts configuration from Service Worker registration URL parameters if provided,
+// otherwise uses empty safe placeholders. No sensitive keys are hardcoded.
+const swConfig = {
+    apiKey: "YOUR_FIREBASE_API_KEY_HERE",
+    authDomain: "YOUR_FIREBASE_AUTH_DOMAIN_HERE",
+    projectId: "YOUR_FIREBASE_PROJECT_ID_HERE",
+    storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET_HERE",
+    messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID_HERE",
+    appId: "YOUR_FIREBASE_APP_ID_HERE"
+};
 
-const messaging = firebase.messaging();
+try {
+    if (self.location && self.location.search) {
+        const swParams = new URLSearchParams(self.location.search);
+        if (swParams.get('apiKey')) swConfig.apiKey = swParams.get('apiKey');
+        if (swParams.get('authDomain')) swConfig.authDomain = swParams.get('authDomain');
+        if (swParams.get('projectId')) swConfig.projectId = swParams.get('projectId');
+        if (swParams.get('storageBucket')) swConfig.storageBucket = swParams.get('storageBucket');
+        if (swParams.get('messagingSenderId')) swConfig.messagingSenderId = swParams.get('messagingSenderId');
+        if (swParams.get('appId')) swConfig.appId = swParams.get('appId');
+    }
+} catch (e) {
+    // Ignore URL search parsing errors in worker environment
+}
 
-// Handle background messages via Firebase Compat SDK
-messaging.onBackgroundMessage(() => {
-    // Handled by custom push listener
-});
+let messaging = null;
+if (swConfig.apiKey && swConfig.apiKey !== 'YOUR_FIREBASE_API_KEY_HERE') {
+    try {
+        firebase.initializeApp(swConfig);
+        messaging = firebase.messaging();
+        messaging.onBackgroundMessage(() => {
+            // Handled by custom push listener
+        });
+    } catch (fbInitErr) {
+        console.warn('[FCM SW] Firebase init error:', fbInitErr);
+    }
+}
 
 // Suppress duplicate, untagged showNotification calls triggered by Firebase Compat SDK internally
 // so that ONLY the custom Service Worker push handler renders the native notification.
