@@ -373,6 +373,9 @@ renderBreadcrumbs($breadcrumbs);
                                                 data-image-url="<?= htmlspecialchars(!empty($event['image_path']) ? BASE_URL . '/modules/cocurricular/pages/event-image.php?club_id=' . (int) $event['club_id'] . '&event_id=' . (int) $event['id'] : '', ENT_QUOTES) ?>">
                                             Edit
                                         </button>
+                                        <button type="button" class="btn btn-sm btn-outline-info generate-event-ai-btn" data-event-id="<?= (int) $event['id'] ?>" title="Generate Announcement Draft with AI">
+                                            <i class="fas fa-magic me-1"></i>Generate Announcement
+                                        </button>
                                         <?php if ($event['status'] !== 'Published'): ?>
                                             <form method="post" action="<?= BASE_URL ?>/modules/cocurricular/pages/student-affairs-events.php" class="d-inline" onsubmit="return confirm('Publish this event?');">
                                                 <input type="hidden" name="action" value="status">
@@ -412,6 +415,42 @@ renderBreadcrumbs($breadcrumbs);
         <?php endif; ?>
     </div>
 </section>
+
+<div class="modal fade" id="eventAiDraftModal" tabindex="-1" aria-labelledby="eventAiDraftModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="eventAiDraftModalLabel">
+                    <i class="fas fa-robot text-primary"></i> AI Announcement Draft
+                </h5>
+                <span class="badge bg-primary text-white">GPT-4.1</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2 px-3 small d-flex align-items-center gap-2 mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    <div>This is an <strong>AI-generated announcement draft</strong> based on your event details. Review and edit before publishing.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Draft Title</label>
+                    <input type="text" id="eventAiDraftTitle" class="form-control" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Draft Content</label>
+                    <textarea id="eventAiDraftContent" class="form-control" rows="8" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="eventAiOpenDraftBtn" class="btn btn-primary">
+                    <i class="fas fa-edit me-1"></i>Review & Save in Announcement Manager
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">

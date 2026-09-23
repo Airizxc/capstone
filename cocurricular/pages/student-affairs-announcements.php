@@ -53,6 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $isAiGenerated = !empty($_POST['is_ai_generated']);
+    $aiModel = trim((string) ($_POST['ai_model'] ?? ''));
+    $aiGeneratedAt = trim((string) ($_POST['ai_generated_at'] ?? ''));
+
     if (empty($errors)) {
         $imageUpload = smsSecureUpload($_FILES['announcement_image'] ?? [], [
             'subdir' => 'cocurricular_announcements',
@@ -81,8 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'posted_at' => $postedAt,
                 'is_pinned' => $isPinned,
                 'attachment_path' => $attachmentPath,
+                'is_ai_generated' => $isAiGenerated ? 1 : 0,
+                'ai_model' => $isAiGenerated ? ($aiModel !== '' ? $aiModel : 'gpt-4.1') : null,
+                'ai_generated_at' => $isAiGenerated ? ($aiGeneratedAt !== '' ? $aiGeneratedAt : date('Y-m-d H:i:s')) : null,
             ]);
             if ($saved) {
+                cocurricularNotifyAnnouncementPublished((int) $saved);
                 $notice = 'Announcement created successfully.';
             } else {
                 cocurricularRemoveStoredAnnouncementImage($newAttachmentPath);
@@ -100,8 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'posted_at' => $postedAt,
                     'is_pinned' => $isPinned,
                     'attachment_path' => $attachmentPath,
+                    'is_ai_generated' => $isAiGenerated ? 1 : null,
+                    'ai_model' => $isAiGenerated ? ($aiModel !== '' ? $aiModel : 'gpt-4.1') : null,
+                    'ai_generated_at' => $isAiGenerated ? ($aiGeneratedAt !== '' ? $aiGeneratedAt : date('Y-m-d H:i:s')) : null,
                 ]);
                 if ($saved) {
+                    cocurricularNotifyAnnouncementPublished($announcementId);
                     if ($existingAttachmentPath !== '' && $existingAttachmentPath !== $attachmentPath) {
                         cocurricularRemoveStoredAnnouncementImage($existingAttachmentPath);
                     }
@@ -242,6 +254,9 @@ renderBreadcrumbs($breadcrumbs);
                 <div class="modal-body">
                     <input type="hidden" name="action" id="announcementAction" value="create">
                     <input type="hidden" name="announcement_id" id="announcementId" value="">
+                    <input type="hidden" name="is_ai_generated" id="isAiGenerated" value="0">
+                    <input type="hidden" name="ai_model" id="aiModel" value="">
+                    <input type="hidden" name="ai_generated_at" id="aiGeneratedAt" value="">
 
                     <div class="mb-3">
                         <label class="form-label" for="announcementClubId">Club</label>
@@ -251,6 +266,40 @@ renderBreadcrumbs($breadcrumbs);
                                 <option value="<?= (int) $club['id'] ?>"><?= htmlspecialchars($club['club_name']) ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+
+                    <!-- AI Announcement Assistant -->
+                    <div class="card bg-light border-primary border-opacity-25 mb-3" id="aiAssistantSection">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="card-title text-primary mb-0 d-flex align-items-center gap-2">
+                                    <i class="fas fa-robot text-primary"></i> AI Announcement Assistant
+                                </h6>
+                                <span class="badge bg-primary text-white">GPT-4.1</span>
+                            </div>
+                            <p class="small text-muted mb-2">
+                                Provide the basic details and let GPT-4.1 prepare a draft. Review and edit the result before publishing.
+                            </p>
+
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-12">
+                                    <input type="text" id="aiTopic" class="form-control form-control-sm" placeholder="Topic / Main idea (optional)">
+                                </div>
+                                <div class="col-md-12">
+                                    <textarea id="aiDetails" class="form-control form-control-sm" rows="2" placeholder="Announcement details or instructions (optional)"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="generateAiBtn">
+                                    <i class="fas fa-magic me-1" id="aiBtnIcon"></i><span id="aiBtnText">Generate with AI</span>
+                                </button>
+                                <div id="aiDraftBadge" class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-none">
+                                    <i class="fas fa-check-circle me-1"></i> AI-generated draft loaded. Please review & edit.
+                                </div>
+                            </div>
+                            <div id="aiErrorAlert" class="alert alert-danger py-1 px-2 small mt-2 d-none"></div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -314,6 +363,18 @@ renderBreadcrumbs($breadcrumbs);
         const removeImageWrap = document.getElementById('removeImageWrap');
         const removeImage = document.getElementById('removeImage');
 
+        // AI Assistant Elements
+        const generateAiBtn = document.getElementById('generateAiBtn');
+        const aiBtnIcon = document.getElementById('aiBtnIcon');
+        const aiBtnText = document.getElementById('aiBtnText');
+        const aiTopic = document.getElementById('aiTopic');
+        const aiDetails = document.getElementById('aiDetails');
+        const aiDraftBadge = document.getElementById('aiDraftBadge');
+        const aiErrorAlert = document.getElementById('aiErrorAlert');
+        const isAiGenerated = document.getElementById('isAiGenerated');
+        const aiModel = document.getElementById('aiModel');
+        const aiGeneratedAt = document.getElementById('aiGeneratedAt');
+
         modal.addEventListener('show.bs.modal', function (event) {
             const trigger = event.relatedTarget;
             const mode = trigger?.getAttribute('data-mode') || 'create';
@@ -324,6 +385,16 @@ renderBreadcrumbs($breadcrumbs);
             const postedAt = trigger?.getAttribute('data-posted-at') || '';
             const isPinned = trigger?.getAttribute('data-is-pinned') || '0';
             const imageUrl = trigger?.getAttribute('data-image-url') || '';
+
+            // Reset AI state
+            isAiGenerated.value = '0';
+            aiModel.value = '';
+            aiGeneratedAt.value = '';
+            aiDraftBadge.classList.add('d-none');
+            aiErrorAlert.classList.add('d-none');
+            aiErrorAlert.textContent = '';
+            aiTopic.value = '';
+            aiDetails.value = '';
 
             if (mode === 'edit') {
                 actionField.value = 'update';
@@ -365,6 +436,91 @@ renderBreadcrumbs($breadcrumbs);
             imagePreview.classList.remove('d-none');
             removeImage.checked = false;
         });
+
+        generateAiBtn.addEventListener('click', function () {
+            if (isAiGenerated.value === '1' || titleField.value.trim() !== '' || contentField.value.trim() !== '') {
+                if (!confirm('Generate a new AI draft? Your current announcement content will be updated with the AI draft.')) {
+                    return;
+                }
+            }
+
+            const topicVal = aiTopic.value.trim();
+            const detailsVal = aiDetails.value.trim();
+            const titleVal = titleField.value.trim();
+            const contentVal = contentField.value.trim();
+
+            if (!topicVal && !detailsVal && !titleVal && !contentVal) {
+                aiErrorAlert.textContent = 'Please enter a topic or details in the AI Assistant box, or type a draft title above.';
+                aiErrorAlert.classList.remove('d-none');
+                return;
+            }
+
+            aiErrorAlert.classList.add('d-none');
+            generateAiBtn.disabled = true;
+            aiBtnIcon.className = 'fas fa-spinner fa-spin me-1';
+            aiBtnText.textContent = 'Generating draft...';
+
+            const payload = {
+                club_id: clubField.value,
+                title: titleVal || topicVal,
+                topic: topicVal || titleVal,
+                details: detailsVal || contentVal,
+            };
+
+            fetch('<?= BASE_URL ?>/modules/cocurricular/endpoints/generate-announcement.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    titleField.value = data.data.title || titleField.value;
+                    contentField.value = data.data.content || contentField.value;
+                    isAiGenerated.value = '1';
+                    aiModel.value = data.model || 'gpt-4.1';
+                    aiGeneratedAt.value = data.generated_at || new Date().toISOString();
+                    aiDraftBadge.classList.remove('d-none');
+                } else {
+                    aiErrorAlert.textContent = data.error || 'Unable to generate announcement draft right now.';
+                    aiErrorAlert.classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                console.error('AI Announcement generation error:', err);
+                aiErrorAlert.textContent = 'Network error or connection failed. Please try again.';
+                aiErrorAlert.classList.remove('d-none');
+            })
+            .finally(() => {
+                generateAiBtn.disabled = false;
+                aiBtnIcon.className = 'fas fa-magic me-1';
+                aiBtnText.textContent = 'Re-generate with AI';
+            });
+        });
+
+        // Auto-open modal if redirected from Event-to-Announcement AI Generator
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('ai_draft') === '1') {
+            const clubIdParam = urlParams.get('club_id') || '';
+            const titleParam = urlParams.get('title') || '';
+            const contentParam = urlParams.get('content') || '';
+            const modelParam = urlParams.get('model') || 'gpt-4.1';
+
+            if (clubIdParam) clubField.value = clubIdParam;
+            if (titleParam) titleField.value = titleParam;
+            if (contentParam) contentField.value = contentParam;
+
+            isAiGenerated.value = '1';
+            aiModel.value = modelParam;
+            aiGeneratedAt.value = new Date().toISOString();
+            aiDraftBadge.classList.remove('d-none');
+
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
     });
 </script>
 

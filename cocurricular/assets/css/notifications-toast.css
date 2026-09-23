@@ -1,0 +1,307 @@
+/**
+ * SMS 2 - Global Theme-Aware Notification Toast
+ * Automatically adapts to Light Mode and Dark Mode using the portal's [data-theme] tokens.
+ * Retains exact layout and aesthetics from the reference design.
+ */
+
+:root,
+[data-theme="light"] {
+    --sms-toast-bg: radial-gradient(circle at 12% 88%, rgba(37, 99, 235, 0.08) 0%, transparent 60%), #ffffff;
+    --sms-toast-border: rgba(203, 213, 225, 0.95);
+    --sms-toast-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 16px -6px rgba(15, 23, 42, 0.08);
+    --sms-toast-title: #0f172a;
+    --sms-toast-club: #1d4ed8;
+    --sms-toast-message: #334155;
+    --sms-toast-close: #64748b;
+    --sms-toast-close-hover: #0f172a;
+    --sms-toast-close-hover-bg: rgba(15, 23, 42, 0.06);
+    --sms-toast-icon-bg: rgba(37, 99, 235, 0.10);
+    --sms-toast-icon-color: #1d4ed8;
+    --sms-toast-btn-primary-bg: rgba(37, 99, 235, 0.10);
+    --sms-toast-btn-primary-color: #1d4ed8;
+    --sms-toast-btn-primary-border: rgba(37, 99, 235, 0.28);
+    --sms-toast-btn-primary-hover-bg: #1e40af;
+    --sms-toast-btn-primary-hover-color: #ffffff;
+    --sms-toast-btn-primary-hover-border: #1e40af;
+    --sms-toast-btn-sec-color: #64748b;
+    --sms-toast-btn-sec-hover: #0f172a;
+}
+
+[data-theme="dark"] {
+    --sms-toast-bg: radial-gradient(circle at 15% 85%, rgba(59, 130, 246, 0.15) 0%, transparent 55%), #1c1c21;
+    --sms-toast-border: rgba(255, 255, 255, 0.11);
+    --sms-toast-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.5), 0 4px 10px -2px rgba(0, 0, 0, 0.3);
+    --sms-toast-title: #f8fafc;
+    --sms-toast-club: #93c5fd;
+    --sms-toast-message: #cbd5e1;
+    --sms-toast-close: #94a3b8;
+    --sms-toast-close-hover: #f8fafc;
+    --sms-toast-close-hover-bg: rgba(255, 255, 255, 0.10);
+    --sms-toast-icon-bg: rgba(59, 130, 246, 0.20);
+    --sms-toast-icon-color: #60a5fa;
+    --sms-toast-btn-primary-bg: rgba(59, 130, 246, 0.20);
+    --sms-toast-btn-primary-color: #93c5fd;
+    --sms-toast-btn-primary-border: rgba(59, 130, 246, 0.35);
+    --sms-toast-btn-primary-hover-bg: rgba(59, 130, 246, 0.32);
+    --sms-toast-btn-primary-hover-color: #ffffff;
+    --sms-toast-btn-primary-hover-border: rgba(59, 130, 246, 0.50);
+    --sms-toast-btn-sec-color: #94a3b8;
+    --sms-toast-btn-sec-hover: #f1f5f9;
+}
+
+/* Explicit element-level theme adaptations */
+[data-theme="light"] .sms-notification-toast,
+html[data-theme="light"] .sms-notification-toast {
+    background: radial-gradient(circle at 12% 88%, rgba(37, 99, 235, 0.08) 0%, transparent 60%), #ffffff !important;
+    background-color: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.95) !important;
+    color: #334155 !important;
+}
+
+[data-theme="light"] .sms-toast-title,
+html[data-theme="light"] .sms-toast-title {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .sms-toast-club,
+html[data-theme="light"] .sms-toast-club {
+    color: #1d4ed8 !important;
+}
+
+[data-theme="light"] .sms-toast-btn-primary,
+html[data-theme="light"] .sms-toast-btn-primary {
+    background: rgba(37, 99, 235, 0.10) !important;
+    color: #1d4ed8 !important;
+    border-color: rgba(37, 99, 235, 0.28) !important;
+}
+
+[data-theme="dark"] .sms-notification-toast,
+html[data-theme="dark"] .sms-notification-toast {
+    background: radial-gradient(circle at 15% 85%, rgba(59, 130, 246, 0.15) 0%, transparent 55%), #1c1c21 !important;
+    background-color: #1c1c21 !important;
+    border-color: rgba(255, 255, 255, 0.11) !important;
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .sms-toast-title,
+html[data-theme="dark"] .sms-toast-title {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .sms-toast-club,
+html[data-theme="dark"] .sms-toast-club {
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .sms-toast-btn-primary,
+html[data-theme="dark"] .sms-toast-btn-primary {
+    background: rgba(59, 130, 246, 0.20) !important;
+    color: #93c5fd !important;
+    border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+#sms-toast-container {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1065;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 12px;
+    pointer-events: none;
+    max-width: 380px;
+    width: 100%;
+}
+
+@media (max-width: 576px) {
+    #sms-toast-container {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        width: auto;
+        max-width: none;
+    }
+}
+
+.sms-notification-toast {
+    pointer-events: auto;
+    position: relative;
+    background: var(--sms-toast-bg);
+    border: 1px solid var(--sms-toast-border);
+    border-radius: 14px;
+    box-shadow: var(--sms-toast-shadow);
+    padding: 16px 18px 14px;
+    color: var(--sms-toast-message);
+    font-family: inherit;
+    overflow: hidden;
+    animation: smsToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.sms-notification-toast.sms-toast-hiding {
+    opacity: 0;
+    transform: translateX(30px) scale(0.96);
+    pointer-events: none;
+}
+
+.sms-toast-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.sms-toast-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.sms-toast-icon-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sms-toast-icon-bg);
+    color: var(--sms-toast-icon-color);
+    flex-shrink: 0;
+    font-size: 15px;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+.sms-toast-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--sms-toast-title);
+    letter-spacing: -0.01em;
+    margin: 0;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.25s ease;
+}
+
+.sms-toast-close {
+    background: transparent;
+    border: none;
+    color: var(--sms-toast-close);
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.sms-toast-close:hover {
+    color: var(--sms-toast-close-hover);
+    background: var(--sms-toast-close-hover-bg);
+}
+
+.sms-toast-close:focus-visible {
+    outline: 2px solid var(--sms-toast-icon-color);
+    outline-offset: 1px;
+}
+
+.sms-toast-body {
+    padding-left: 40px;
+    margin-bottom: 12px;
+}
+
+.sms-toast-club {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sms-toast-club);
+    margin-bottom: 3px;
+    line-height: 1.3;
+    transition: color 0.25s ease;
+}
+
+.sms-toast-message {
+    font-size: 0.825rem;
+    color: var(--sms-toast-message);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.25s ease;
+}
+
+.sms-toast-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-left: 40px;
+}
+
+.sms-toast-btn-primary {
+    background: var(--sms-toast-btn-primary-bg);
+    color: var(--sms-toast-btn-primary-color);
+    border: 1px solid var(--sms-toast-btn-primary-border);
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sms-toast-btn-primary:hover {
+    background: var(--sms-toast-btn-primary-hover-bg);
+    color: var(--sms-toast-btn-primary-hover-color);
+    border-color: var(--sms-toast-btn-primary-hover-border);
+}
+
+.sms-toast-btn-primary:focus-visible {
+    outline: 2px solid var(--sms-toast-icon-color);
+    outline-offset: 2px;
+}
+
+.sms-toast-btn-secondary {
+    background: transparent;
+    color: var(--sms-toast-btn-sec-color);
+    border: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.sms-toast-btn-secondary:hover {
+    color: var(--sms-toast-btn-sec-hover);
+    text-decoration: underline;
+}
+
+.sms-toast-btn-secondary:focus-visible {
+    outline: 2px solid var(--sms-toast-btn-sec-color);
+    border-radius: 6px;
+}
+
+@keyframes smsToastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

@@ -41,6 +41,14 @@ try {
         echo json_encode(['success' => false, 'message' => 'Application was already reviewed or could not be updated.']);
         exit;
     }
+
+    // Trigger automatic notification (Database committed first, FCM dispatched secondary)
+    if ($status === 'Approved') {
+        cocurricularNotifyMembershipApproved($applicationId);
+    } else {
+        cocurricularNotifyMembershipRejected($applicationId);
+    }
+
     if (!$isAjax) {
         header('Location: ' . BASE_URL . '/modules/cocurricular/pages/membership-applications.php');
         exit;

@@ -103,15 +103,18 @@ function cocurricularAnnouncementImageUrl(array $announcement, int $clubId): ?st
 if (isset($_GET['announcement_id'])) {
     $announcementId = (int) $_GET['announcement_id'];
     $announcement = $announcementId > 0 ? cocurricularGetAnnouncementById($announcementId) : null;
-    if ($announcement && (int) $announcement['club_id'] === $clubId && (!empty($_GET['format']) && $_GET['format'] === 'json')) {
+    $annClubId = (int) ($announcement['club_id'] ?? 0);
+    $canView = $announcement && ($annClubId === $clubId || cocurricularFetchApprovedMembershipForClub($annClubId, $userId));
+    if ($canView && (!empty($_GET['format']) && $_GET['format'] === 'json')) {
         header('Content-Type: application/json');
         echo json_encode([
             'id' => (int) $announcement['id'],
+            'club_id' => $annClubId,
             'title' => (string) $announcement['title'],
             'content' => (string) $announcement['content'],
             'posted_at' => date('M j, Y', strtotime((string) $announcement['posted_at'])),
             'is_pinned' => (bool) $announcement['is_pinned'],
-            'attachment_path' => cocurricularAnnouncementImageUrl($announcement, $clubId) ?? '',
+            'attachment_path' => cocurricularAnnouncementImageUrl($announcement, $annClubId) ?? '',
         ], JSON_THROW_ON_ERROR);
         exit;
     }
@@ -164,16 +167,18 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
 <main class="club-workspace">
     <header class="club-workspace-header">
         <div>
-            <div class="club-eyebrow"><i class="fas fa-layer-group"></i> Private club workspace</div>
+            <div class="club-eyebrow"><?= smsIcon('stack-2') ?> Private club workspace</div>
             <h1><?= htmlspecialchars($club['club_name']) ?></h1>
             <p><?= htmlspecialchars($club['category']) ?> <span aria-hidden="true">•</span> Adviser: <?= htmlspecialchars($club['adviser']) ?></p>
         </div>
-        <div class="club-member-chip"><i class="fas fa-check-circle"></i> Active Member</div>
+        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+            <div class="club-member-chip"><?= smsIcon('circle-check') ?> Active Member</div>
+        </div>
     </header>
 
     <section class="club-announcement-hero" id="overview" aria-labelledby="hero-title" data-hero-count="<?= count($heroItems) ?>">
         <div class="club-hero-copy">
-            <span class="club-hero-kicker"><i class="fas fa-bullhorn"></i> Featured club content<?php if (count($heroItems) > 1): ?> <span class="club-hero-count"><?= count($heroItems) ?> pinned</span><?php endif; ?></span>
+            <span class="club-hero-kicker"><?= smsIcon('bullhorn') ?> Featured club content<?php if (count($heroItems) > 1): ?> <span class="club-hero-count"><?= count($heroItems) ?> pinned</span><?php endif; ?></span>
             <?php if (!empty($heroItems)): ?>
                 <div class="club-hero-slides">
                     <?php foreach ($heroItems as $index => $heroItem): ?>
@@ -182,7 +187,7 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
                             <h2 id="hero-title<?= $index > 0 ? '-' . $index : '' ?>"><?= htmlspecialchars($heroContent['title']) ?></h2>
                             <p><?= htmlspecialchars(mb_substr((string) ($isHeroEvent ? $heroContent['description'] : $heroContent['content']), 0, 170)) ?><?= mb_strlen((string) ($isHeroEvent ? $heroContent['description'] : $heroContent['content'])) > 170 ? '...' : '' ?></p>
                             <div class="club-hero-meta"><?= $isHeroEvent ? 'Event ' . htmlspecialchars(date('M j, Y', strtotime($heroContent['event_date']))) : 'Posted ' . htmlspecialchars(date('M j, Y', strtotime($heroContent['posted_at']))) ?> <span class="club-pin-label">Pinned</span></div>
-                            <button type="button" class="btn club-hero-button" data-hero-cta>View <?= $isHeroEvent ? 'Event' : 'Announcement' ?> <i class="fas fa-arrow-right"></i></button>
+                            <button type="button" class="btn club-hero-button" data-hero-cta>View <?= $isHeroEvent ? 'Event' : 'Announcement' ?> <?= smsIcon('arrow-right') ?></button>
                         </article>
                     <?php endforeach; ?>
                 </div>
@@ -211,40 +216,40 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
                         <?php if ($imageUrl): ?>
                             <img src="<?= htmlspecialchars($imageUrl, ENT_QUOTES) ?>" alt="<?= htmlspecialchars($heroContent['title']) ?>">
                         <?php else: ?>
-                            <div class="club-hero-fallback"><i class="fas fa-<?= $heroItem['type'] === 'event' ? 'calendar-alt' : 'bullhorn' ?>"></i><span>Club<br><?= $heroItem['type'] === 'event' ? 'event' : 'announcement' ?></span></div>
+                            <div class="club-hero-fallback"><?= smsIcon($heroItem['type'] === 'event' ? 'calendar-alt' : 'bullhorn') ?><span>Club<br><?= $heroItem['type'] === 'event' ? 'event' : 'announcement' ?></span></div>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <div class="club-hero-visuals" aria-hidden="true"><div class="club-hero-fallback"><i class="fas fa-bullhorn"></i><span>Club<br>announcement</span></div></div>
+            <div class="club-hero-visuals" aria-hidden="true"><div class="club-hero-fallback"><?= smsIcon('bullhorn') ?><span>Club<br>announcement</span></div></div>
         <?php endif; ?>
     </section>
 
     <section class="club-section-block" aria-labelledby="featured-title">
-        <div class="club-section-heading"><div><span class="club-section-kicker">Quick access</span><h2 id="featured-title">Featured club sections</h2></div><a href="#club-posts" class="club-text-link">Explore workspace <i class="fas fa-arrow-right"></i></a></div>
+        <div class="club-section-heading"><div><span class="club-section-kicker">Quick access</span><h2 id="featured-title">Featured club sections</h2></div><a href="#club-posts" class="club-text-link">Explore workspace <?= smsIcon('arrow-right') ?></a></div>
         <div class="club-feature-grid">
             <?php
             $features = [
-                ['announcements', 'fa-bullhorn', 'Announcements', 'Club updates and notices'],
-                ['events', 'fa-calendar-alt', 'Events & Activities', 'Upcoming club activities'],
-                ['attendance', 'fa-clipboard-check', 'Attendance', 'Your activity record'],
-                ['documents', 'fa-folder-open', 'Documents', 'Shared club files'],
-                ['achievements', 'fa-award', 'Achievements', 'Club milestones'],
-                ['elections', 'fa-vote-yea', 'Election Information', 'Leadership updates'],
-                ['volunteer-hours', 'fa-hands-helping', 'Volunteer Hours', 'Your service record'],
-                ['club-posts', 'fa-comments', 'Club Posts', 'Community updates'],
+                ['announcements', 'bullhorn', 'Announcements', 'Club updates and notices'],
+                ['events', 'calendar-alt', 'Events & Activities', 'Upcoming club activities'],
+                ['attendance', 'clipboard-check', 'Attendance', 'Your activity record'],
+                ['documents', 'folder-open', 'Documents', 'Shared club files'],
+                ['achievements', 'award', 'Achievements', 'Club milestones'],
+                ['elections', 'circle-check', 'Election Information', 'Leadership updates'],
+                ['volunteer-hours', 'handshake', 'Volunteer Hours', 'Your service record'],
+                ['club-posts', 'comments', 'Club Posts', 'Community updates'],
             ];
             foreach ($features as [$anchor, $icon, $title, $description]): ?>
-                <a class="club-feature-card" href="#<?= $anchor ?>"><span class="club-feature-icon"><i class="fas <?= $icon ?>"></i></span><strong><?= $title ?></strong><small><?= $description ?></small><span class="club-feature-view">View <i class="fas fa-arrow-right"></i></span></a>
+                <a class="club-feature-card" href="#<?= $anchor ?>"><span class="club-feature-icon"><?= smsIcon($icon) ?></span><strong><?= $title ?></strong><small><?= $description ?></small><span class="club-feature-view">View <?= smsIcon('arrow-right') ?></span></a>
             <?php endforeach; ?>
         </div>
     </section>
 
     <section class="club-attendance-panel" id="attendance" aria-labelledby="attendance-title">
         <div class="club-attendance-heading">
-            <div class="club-attendance-icon"><i class="fas fa-clipboard-check"></i></div>
-            <div><span class="club-section-kicker">Member activity</span><h2 id="attendance-title">Attendance <?php if (!empty($attendanceData['available_sessions'])): ?><span class="club-attendance-availability"><i class="fas fa-bolt"></i> Attendance Available</span><?php endif; ?></h2><p class="mb-0">Your club participation at a glance.</p></div>
+            <div class="club-attendance-icon"><?= smsIcon('clipboard-check') ?></div>
+            <div><span class="club-section-kicker">Member activity</span><h2 id="attendance-title">Attendance <?php if (!empty($attendanceData['available_sessions'])): ?><span class="club-attendance-availability"><?= smsIcon('bolt') ?> Attendance Available</span><?php endif; ?></h2><p class="mb-0">Your club participation at a glance.</p></div>
         </div>
         <div class="club-attendance-dashboard">
             <div class="club-attendance-summary">
@@ -261,9 +266,9 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
             </div>
             <div class="club-attendance-calendar-card">
                 <div class="club-calendar-header">
-                    <button type="button" class="club-calendar-nav" data-calendar-prev aria-label="Previous month"><i class="fas fa-chevron-left"></i></button>
+                    <button type="button" class="club-calendar-nav" data-calendar-prev aria-label="Previous month"><?= smsIcon('chevron-left') ?></button>
                     <h3 data-calendar-title>Loading calendar</h3>
-                    <button type="button" class="club-calendar-nav" data-calendar-next aria-label="Next month"><i class="fas fa-chevron-right"></i></button>
+                    <button type="button" class="club-calendar-nav" data-calendar-next aria-label="Next month"><?= smsIcon('chevron-right') ?></button>
                 </div>
                 <div class="club-calendar-weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
                 <div class="club-calendar-grid" data-calendar-grid role="grid" aria-label="Attendance calendar"></div>
@@ -275,7 +280,7 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
     <div class="club-content-grid">
         <section class="club-content-section" id="announcements" aria-labelledby="announcements-title">
             <div class="club-section-heading"><div><span class="club-section-kicker">Stay informed</span><h2 id="announcements-title">Announcements</h2></div></div>
-            <?php if (empty($allAnnouncements)): ?><div class="club-empty-state"><i class="fas fa-bullhorn"></i><p>No announcements yet.</p></div>
+            <?php if (empty($allAnnouncements)): ?><div class="club-empty-state"><?= smsIcon('bullhorn') ?><p>No announcements yet.</p></div>
             <?php else: ?><div class="club-announcement-list"><?php foreach ($allAnnouncements as $announcement): ?><article class="club-announcement-row" data-content-type="announcement" data-content-id="<?= (int) $announcement['id'] ?>"><div><div class="club-row-meta"><?= htmlspecialchars(date('M j, Y', strtotime($announcement['posted_at']))) ?><?php if (!empty($announcement['is_pinned'])): ?> <span class="club-pin-label">Pinned</span><?php endif; ?></div><h3><?= htmlspecialchars($announcement['title']) ?></h3><p><?= htmlspecialchars(mb_substr((string) $announcement['content'], 0, 130)) ?><?= mb_strlen((string) $announcement['content']) > 130 ? '...' : '' ?></p></div><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#announcementDetailModal" data-announcement-id="<?= (int) $announcement['id'] ?>">Read</button></article><?php endforeach; ?></div><?php endif; ?>
         </section>
 
@@ -298,7 +303,7 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
             <div><span class="club-section-kicker">What's next</span><h2 id="events-title">Events &amp; Activities</h2></div>
         </div>
         <?php if (empty($clubEvents)): ?>
-            <div class="club-empty-state"><i class="fas fa-calendar-alt"></i><p>No upcoming events.</p></div>
+            <div class="club-empty-state"><?= smsIcon('calendar-alt') ?><p>No upcoming events.</p></div>
         <?php else: ?>
             <div class="club-event-sections">
                 <?php if (!empty($upcomingClubEvents)): ?>
@@ -318,9 +323,9 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
                                         </div>
                                         <h4><?= htmlspecialchars($event['title']) ?></h4>
                                         <ul class="club-event-meta">
-                                            <li><i class="fas fa-calendar-day"></i> <?= htmlspecialchars(date('M j, Y', strtotime((string) $event['event_date']))) ?></li>
-                                            <li><i class="fas fa-clock"></i> <?= htmlspecialchars(date('h:i A', strtotime((string) $event['start_time']))) ?> - <?= htmlspecialchars(date('h:i A', strtotime((string) $event['end_time']))) ?></li>
-                                            <?php if (!empty($event['venue'])): ?><li><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($event['venue']) ?></li><?php endif; ?>
+                                            <li><?= smsIcon('calendar-day') ?> <?= htmlspecialchars(date('M j, Y', strtotime((string) $event['event_date']))) ?></li>
+                                            <li><?= smsIcon('clock') ?> <?= htmlspecialchars(date('h:i A', strtotime((string) $event['start_time']))) ?> - <?= htmlspecialchars(date('h:i A', strtotime((string) $event['end_time']))) ?></li>
+                                            <?php if (!empty($event['venue'])): ?><li><?= smsIcon('map-pin') ?> <?= htmlspecialchars($event['venue']) ?></li><?php endif; ?>
                                         </ul>
                                         <?php if (!empty($event['description'])): ?><p><?= nl2br(htmlspecialchars($event['description'])) ?></p><?php endif; ?>
                                         <button type="button" class="btn btn-sm btn-outline-primary mt-3" data-bs-toggle="modal" data-bs-target="#eventDetailModal" data-event-id="<?= (int) $event['id'] ?>">View Event</button>
@@ -348,9 +353,9 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
                                         </div>
                                         <h4><?= htmlspecialchars($event['title']) ?></h4>
                                         <ul class="club-event-meta">
-                                            <li><i class="fas fa-calendar-day"></i> <?= htmlspecialchars(date('M j, Y', strtotime((string) $event['event_date']))) ?></li>
-                                            <li><i class="fas fa-clock"></i> <?= htmlspecialchars(date('h:i A', strtotime((string) $event['start_time']))) ?> - <?= htmlspecialchars(date('h:i A', strtotime((string) $event['end_time']))) ?></li>
-                                            <?php if (!empty($event['venue'])): ?><li><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($event['venue']) ?></li><?php endif; ?>
+                                            <li><?= smsIcon('calendar-day') ?> <?= htmlspecialchars(date('M j, Y', strtotime((string) $event['event_date']))) ?></li>
+                                            <li><?= smsIcon('clock') ?> <?= htmlspecialchars(date('h:i A', strtotime((string) $event['start_time']))) ?> - <?= htmlspecialchars(date('h:i A', strtotime((string) $event['end_time']))) ?></li>
+                                            <?php if (!empty($event['venue'])): ?><li><?= smsIcon('map-pin') ?> <?= htmlspecialchars($event['venue']) ?></li><?php endif; ?>
                                         </ul>
                                         <?php if (!empty($event['description'])): ?><p><?= nl2br(htmlspecialchars($event['description'])) ?></p><?php endif; ?>
                                         <button type="button" class="btn btn-sm btn-outline-primary mt-3" data-bs-toggle="modal" data-bs-target="#eventDetailModal" data-event-id="<?= (int) $event['id'] ?>">View Event</button>
@@ -364,12 +369,12 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
         <?php endif; ?>
     </section>
     <div class="club-empty-grid">
-        <section class="club-content-section" id="documents"><h2>Documents</h2><div class="club-empty-state compact"><i class="fas fa-folder-open"></i><p>No documents available.</p></div></section>
-        <section class="club-content-section" id="achievements"><h2>Achievements</h2><div class="club-empty-state compact"><i class="fas fa-award"></i><p>No achievements recorded yet.</p></div></section>
-        <section class="club-content-section" id="elections"><h2>Election Information</h2><div class="club-empty-state compact"><i class="fas fa-vote-yea"></i><p>No election information available.</p></div></section>
-        <section class="club-content-section" id="volunteer-hours"><h2>Volunteer Hours</h2><div class="club-empty-state compact"><i class="fas fa-hands-helping"></i><p>No volunteer records yet.</p></div></section>
+        <section class="club-content-section" id="documents"><h2>Documents</h2><div class="club-empty-state compact"><?= smsIcon('folder-open') ?><p>No documents available.</p></div></section>
+        <section class="club-content-section" id="achievements"><h2>Achievements</h2><div class="club-empty-state compact"><?= smsIcon('award') ?><p>No achievements recorded yet.</p></div></section>
+        <section class="club-content-section" id="elections"><h2>Election Information</h2><div class="club-empty-state compact"><?= smsIcon('circle-check') ?><p>No election information available.</p></div></section>
+        <section class="club-content-section" id="volunteer-hours"><h2>Volunteer Hours</h2><div class="club-empty-state compact"><?= smsIcon('handshake') ?><p>No volunteer records yet.</p></div></section>
     </div>
-    <section class="club-content-section" id="club-posts"><div class="club-section-heading"><div><span class="club-section-kicker">Community</span><h2>Club Posts</h2></div></div><div class="club-empty-state"><i class="fas fa-comments"></i><p>No club posts yet.</p></div></section>
+    <section class="club-content-section" id="club-posts"><div class="club-section-heading"><div><span class="club-section-kicker">Community</span><h2>Club Posts</h2></div></div><div class="club-empty-state"><?= smsIcon('comments') ?><p>No club posts yet.</p></div></section>
 </main>
 
 <div class="modal fade cocurricular-runtime-modal" id="announcementDetailModal" tabindex="-1" aria-labelledby="announcementDetailModalLabel" aria-hidden="true">
@@ -434,7 +439,7 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center">
-                <div class="cocurricular-interest-success-icon" aria-hidden="true"><i class="fas fa-check"></i></div>
+                <div class="cocurricular-interest-success-icon" aria-hidden="true"><?= smsIcon('check') ?></div>
                 <h5 class="modal-title" id="eventInterestSuccessModalLabel">Request Submitted</h5>
                 <p class="mb-0">Your participation request has been submitted and is awaiting Student Affairs approval.</p>
             </div>
@@ -446,7 +451,7 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body text-center">
-                <div class="cocurricular-interest-feedback-icon" id="eventInterestFeedbackIcon" aria-hidden="true"><i class="fas fa-info"></i></div>
+                <div class="cocurricular-interest-feedback-icon" id="eventInterestFeedbackIcon" aria-hidden="true"><?= smsIcon('info-circle') ?></div>
                 <h5 class="modal-title" id="eventInterestFeedbackModalLabel">Already Registered</h5>
                 <p class="mb-0" id="eventInterestFeedbackMessage">You have already expressed your interest in this event.</p>
             </div>
@@ -483,10 +488,10 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
             }
             attendanceList.innerHTML = attendanceRecords.map(function (record) {
                 const action = record.available && record.access_token
-                    ? '<a class="btn btn-sm btn-outline-primary club-attendance-action" href="<?= BASE_URL ?>/modules/cocurricular/pages/student-attendance.php?session=' + encodeURIComponent(record.access_token) + '"><i class="fas fa-check-to-slot"></i> Submit Attendance</a>'
+                    ? '<a class="btn btn-sm btn-outline-primary club-attendance-action" href="<?= BASE_URL ?>/modules/cocurricular/pages/student-attendance.php?session=' + encodeURIComponent(record.access_token) + '"><i class="ti ti-circle-check"></i> Submit Attendance</a>'
                     : '';
                 const checkIn = record.check_in_time ? '<small>Checked in at ' + escapeHtml(new Date(record.check_in_time.replace(' ', 'T')).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })) + '</small>' : '';
-                return '<article class="club-attendance-record"><div class="club-attendance-record-main"><span class="club-attendance-record-club">' + escapeHtml(record.club_name) + '</span><strong>' + escapeHtml(record.title) + '</strong><span>' + escapeHtml(formatCalendarDate(new Date(record.date + 'T00:00:00'))) + ' · ' + escapeHtml(formatAttendanceTime(record.start_time)) + ' - ' + escapeHtml(formatAttendanceTime(record.end_time)) + '</span><span><i class="fas fa-location-dot"></i> ' + escapeHtml(record.venue || 'Location unavailable') + '</span></div><div class="club-attendance-record-status"><span class="club-attendance-badge status-' + record.status.toLowerCase().replaceAll(' ', '-') + '">' + escapeHtml(record.status) + '</span>' + checkIn + action + '</div></article>';
+                return '<article class="club-attendance-record"><div class="club-attendance-record-main"><span class="club-attendance-record-club">' + escapeHtml(record.club_name) + '</span><strong>' + escapeHtml(record.title) + '</strong><span>' + escapeHtml(formatCalendarDate(new Date(record.date + 'T00:00:00'))) + ' · ' + escapeHtml(formatAttendanceTime(record.start_time)) + ' - ' + escapeHtml(formatAttendanceTime(record.end_time)) + '</span><span><i class="ti ti-map-pin"></i> ' + escapeHtml(record.venue || 'Location unavailable') + '</span></div><div class="club-attendance-record-status"><span class="club-attendance-badge status-' + record.status.toLowerCase().replaceAll(' ', '-') + '">' + escapeHtml(record.status) + '</span>' + checkIn + action + '</div></article>';
             }).join('');
         }
 
@@ -495,7 +500,7 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
             const events = calendarEvents.filter(function (item) { return item.event_date === dateKey; });
             const date = new Date(dateKey + 'T00:00:00');
             if (!events.length) {
-                calendarDetails.innerHTML = '<strong>' + formatCalendarDate(date) + '</strong><span class="club-calendar-empty"><i class="fas fa-calendar-day"></i> No club activities scheduled for this date.</span>';
+                calendarDetails.innerHTML = '<strong>' + formatCalendarDate(date) + '</strong><span class="club-calendar-empty"><i class="ti ti-calendar-day"></i> No club activities scheduled for this date.</span>';
                 return;
             }
             calendarDetails.innerHTML = '<strong>' + formatCalendarDate(date) + '</strong><span class="club-calendar-count">' + events.length + ' ' + (events.length === 1 ? 'activity' : 'activities') + ' scheduled</span>' + events.map(function (event) {
@@ -512,9 +517,9 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
                         : 'Past';
                 const stateClass = isRecorded ? 'recorded' : eventState === 'upcoming' ? 'upcoming' : eventState === 'ongoing' ? 'available' : 'past';
                 const action = availableSession && eventState === 'ongoing'
-                    ? '<a class="btn btn-sm btn-outline-primary club-calendar-attendance-action" href="<?= BASE_URL ?>/modules/cocurricular/pages/student-attendance.php?session=' + encodeURIComponent(availableSession.access_token) + '"><i class="fas fa-check-to-slot"></i> Mark Attendance</a>'
+                    ? '<a class="btn btn-sm btn-outline-primary club-calendar-attendance-action" href="<?= BASE_URL ?>/modules/cocurricular/pages/student-attendance.php?session=' + encodeURIComponent(availableSession.access_token) + '"><i class="ti ti-circle-check"></i> Mark Attendance</a>'
                     : '';
-                return '<article class="club-calendar-event state-' + stateClass + '"><span><strong>' + escapeHtml(event.club_name) + '</strong><span class="club-calendar-event-title">' + escapeHtml(event.title) + '</span><span class="club-calendar-event-date">' + escapeHtml(formatCalendarDate(date)) + '</span><span>' + escapeHtml(formatAttendanceTime(event.start_time)) + ' - ' + escapeHtml(formatAttendanceTime(event.end_time)) + '</span><span><i class="fas fa-location-dot"></i> ' + escapeHtml(event.venue || 'Location unavailable') + '</span><span class="club-calendar-attendance">' + escapeHtml(attendanceLabel) + '</span>' + action + '</span></article>';
+                return '<article class="club-calendar-event state-' + stateClass + '"><span><strong>' + escapeHtml(event.club_name) + '</strong><span class="club-calendar-event-title">' + escapeHtml(event.title) + '</span><span class="club-calendar-event-date">' + escapeHtml(formatCalendarDate(date)) + '</span><span>' + escapeHtml(formatAttendanceTime(event.start_time)) + ' - ' + escapeHtml(formatAttendanceTime(event.end_time)) + '</span><span><i class="ti ti-map-pin"></i> ' + escapeHtml(event.venue || 'Location unavailable') + '</span><span class="club-calendar-attendance">' + escapeHtml(attendanceLabel) + '</span>' + action + '</span></article>';
             }).join('');
         }
 
@@ -574,6 +579,67 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
         const modalBody = document.getElementById('announcementDetailModalBody');
         const announcementButtons = document.querySelectorAll('[data-announcement-id]');
 
+        window.cocurricularOpenAnnouncementModal = function (announcementId, targetClubId) {
+            if (!announcementId) return;
+            const modal = document.getElementById('announcementDetailModal');
+            const modalBody = document.getElementById('announcementDetailModalBody');
+            if (!modal || !modalBody) return;
+
+            const modalTitle = document.getElementById('announcementDetailModalLabel');
+            modalBody.innerHTML = '<div class="text-center py-3 text-muted">Loading announcement…</div>';
+            bootstrap.Modal.getOrCreateInstance(modal).show();
+
+            const cId = targetClubId || <?= (int) $clubId ?>;
+            fetch('<?= BASE_URL ?>/modules/cocurricular/pages/my-club.php?club_id=' + encodeURIComponent(cId) + '&announcement_id=' + encodeURIComponent(announcementId) + '&format=json', {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Unable to load announcement.');
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                if (modalTitle) {
+                    modalTitle.textContent = data.title || 'Announcement';
+                }
+                const pinnedBadge = data.is_pinned ? '<span class="badge rounded-pill bg-warning text-dark">Pinned</span>' : '';
+                const attachment = data.attachment_path ? '<img class="img-fluid rounded mb-3" src="' + escapeHtml(data.attachment_path) + '" alt="' + escapeHtml(data.title) + '"><div class="small mb-3"><a href="' + escapeHtml(data.attachment_path) + '" target="_blank" rel="noopener noreferrer">Open image</a></div>' : '';
+                modalBody.innerHTML = attachment + '<div class="mb-3"><div class="d-flex align-items-center gap-2 flex-wrap">' + pinnedBadge + '</div></div><h6 class="fw-bold mb-2">' + escapeHtml(data.title) + '</h6><div class="small text-muted mb-3">Posted: ' + escapeHtml(data.posted_at) + '</div><div class="announcement-content">' + escapeHtml(data.content).replace(/\n/g, '<br>') + '</div>';
+
+                // Also dynamically add to announcement list if not already present
+                let listEl = document.querySelector('#announcements .club-announcement-list');
+                const emptyEl = document.querySelector('#announcements .club-empty-state');
+                if (emptyEl && !listEl) {
+                    emptyEl.outerHTML = '<div class="club-announcement-list"></div>';
+                    listEl = document.querySelector('#announcements .club-announcement-list');
+                }
+                const existingBtn = document.querySelector('[data-announcement-id="' + announcementId + '"]');
+                if (listEl && !existingBtn) {
+                    const rowHtml = '<article class="club-announcement-row" data-content-type="announcement" data-content-id="' + Number(data.id) + '">' +
+                        '<div>' +
+                            '<div class="club-row-meta">' + escapeHtml(data.posted_at) + (data.is_pinned ? ' <span class="club-pin-label">Pinned</span>' : '') + '</div>' +
+                            '<h3>' + escapeHtml(data.title) + '</h3>' +
+                            '<p>' + escapeHtml(data.content.length > 130 ? (data.content.slice(0, 130) + '...') : data.content) + '</p>' +
+                        '</div>' +
+                        '<button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#announcementDetailModal" data-announcement-id="' + Number(data.id) + '">Read</button>' +
+                    '</article>';
+                    listEl.insertAdjacentHTML('afterbegin', rowHtml);
+                    const newBtn = listEl.querySelector('[data-announcement-id="' + Number(data.id) + '"]');
+                    if (newBtn) {
+                        newBtn.addEventListener('click', function () {
+                            window.cocurricularOpenAnnouncementModal(data.id);
+                        });
+                    }
+                }
+            })
+            .catch(function () {
+                modalBody.innerHTML = '<div class="alert alert-danger mb-0">Announcement details are unavailable.</div>';
+            });
+        };
+
         announcementButtons.forEach(function (button) {
             button.addEventListener('click', function () {
                 const announcementId = button.getAttribute('data-announcement-id');
@@ -601,6 +667,24 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
             });
         });
 
+        // Auto-open announcement modal if URL parameter indicates it
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoAnnouncementId = urlParams.get('announcement_id');
+        if (autoAnnouncementId) {
+            window.cocurricularOpenAnnouncementModal(autoAnnouncementId);
+        }
+
+        // If user clicks an announcement notification from navbar bell while on this page
+        document.addEventListener('click', function (event) {
+            const link = event.target.closest('[data-sms-notification-link]');
+            if (!link) return;
+            const href = link.getAttribute('href') || '';
+            const match = href.match(/announcement_id=(\d+)/);
+            if (match && match[1] && typeof window.cocurricularOpenAnnouncementModal === 'function') {
+                window.cocurricularOpenAnnouncementModal(match[1]);
+            }
+        });
+
         let selectedEvent = null;
         const eventModal = document.getElementById('eventDetailModal');
         const eventModalBody = document.getElementById('eventDetailModalBody');
@@ -624,7 +708,7 @@ require_once __DIR__ . '/../../../includes/layout-start.php';
             eventInterestFeedbackTitle.textContent = title;
             eventInterestFeedbackMessage.textContent = message;
             eventInterestFeedbackIcon.classList.toggle('is-error', isError);
-            eventInterestFeedbackIcon.innerHTML = '<i class="fas fa-' + (isError ? 'exclamation' : 'info') + '"></i>';
+            eventInterestFeedbackIcon.innerHTML = '<i class="ti ti-' + (isError ? 'alert-circle' : 'info-circle') + '"></i>';
             bootstrap.Modal.getOrCreateInstance(eventInterestFeedbackModal).show();
             window.setTimeout(function () {
                 bootstrap.Modal.getOrCreateInstance(eventInterestFeedbackModal).hide();

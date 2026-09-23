@@ -120,6 +120,7 @@
 .club-feature-card { background: var(--sms-surface); border: 1px solid var(--sms-border); border-radius: var(--club-radius-sm); box-shadow: var(--sms-shadow-xs); color: var(--sms-text); display: flex; flex-direction: column; min-height: 145px; padding: 1rem; text-decoration: none; transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
 .club-feature-card:hover { border-color: var(--sms-primary-light); box-shadow: var(--sms-shadow-hover); color: var(--sms-text-strong); transform: translateY(-3px); }
 .club-feature-icon { align-items: center; background: rgba(var(--bs-primary-rgb), 0.1); border-radius: 0.7rem; color: var(--sms-primary); display: inline-flex; height: 2.3rem; justify-content: center; margin-bottom: 0.85rem; width: 2.3rem; }
+.club-feature-icon i { font-size: 1.05rem; line-height: 1; }
 .club-feature-card strong { font-size: 0.83rem; line-height: 1.25; }
 .club-feature-card small { color: var(--sms-text-muted); font-size: 0.7rem; line-height: 1.35; margin-top: 0.35rem; }
 .club-feature-view { color: var(--sms-primary); font-size: 0.68rem; font-weight: 700; margin-top: auto; padding-top: 0.75rem; }
