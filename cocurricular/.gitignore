@@ -17,7 +17,9 @@ config/firebase-service-account.json
 !config/firebase-service-account.example.json
 
 # Local config overrides
+config/cocurricular-config.php
 config/cocurricular-config.local.php
+!config/cocurricular-config.example.php
 
 # Logs, cache, and OS artifacts
 *.log

@@ -439,6 +439,305 @@ function cocurricularUnassignClubAdviser(int $clubId, int $assignedByUserId): ar
     }
 }
 
+/**
+ * Create a new student club in cocurricular_db.clubs.
+ * Enforces server-side validation, uniqueness of club name, and optional verified faculty adviser assignment.
+ *
+ * @param array $input
+ * @param int $createdByUserId
+ * @return array{success: bool, message: string, club_id?: int, club?: array}
+ */
+function cocurricularCreateClub(array $input, int $createdByUserId): array
+{
+    cocurricularEnsureAdviserSchema();
+
+    $pdo = cocurricularDb();
+    if (!$pdo) {
+        return ['success' => false, 'message' => 'Database connection unavailable.'];
+    }
+
+    $clubName = trim((string) ($input['club_name'] ?? ''));
+    if ($clubName === '') {
+        return ['success' => false, 'message' => 'Club name is required.'];
+    }
+    if (mb_strlen($clubName) > 191) {
+        return ['success' => false, 'message' => 'Club name must not exceed 191 characters.'];
+    }
+
+    // Verify name uniqueness
+    $stmt = $pdo->prepare('SELECT id FROM clubs WHERE club_name = ? LIMIT 1');
+    $stmt->execute([$clubName]);
+    if ($stmt->fetch()) {
+        return ['success' => false, 'message' => 'A club with this name already exists. Please choose a unique name.'];
+    }
+
+    $category = trim((string) ($input['category'] ?? ''));
+    if ($category === '') {
+        return ['success' => false, 'message' => 'Club category is required.'];
+    }
+    if (mb_strlen($category) > 120) {
+        return ['success' => false, 'message' => 'Category must not exceed 120 characters.'];
+    }
+
+    $description = trim((string) ($input['description'] ?? ''));
+    if ($description === '') {
+        return ['success' => false, 'message' => 'Club description is required.'];
+    }
+
+    $contactPhone = trim((string) ($input['contact_phone'] ?? ''));
+    if ($contactPhone !== '' && mb_strlen($contactPhone) > 60) {
+        return ['success' => false, 'message' => 'Contact phone must not exceed 60 characters.'];
+    }
+    $contactPhoneVal = $contactPhone !== '' ? $contactPhone : null;
+
+    $status = trim((string) ($input['status'] ?? 'Active'));
+    if (!in_array($status, ['Active', 'Pending', 'Inactive'], true)) {
+        $status = 'Active';
+    }
+
+    // Process optional adviser assignment
+    $facultyUserId = isset($input['faculty_user_id']) ? (int) $input['faculty_user_id'] : (isset($input['adviser_id']) ? (int) $input['adviser_id'] : 0);
+    $adviserId = null;
+    $adviserName = 'None';
+    $adviserEmail = null;
+
+    if ($facultyUserId > 0) {
+        $faculty = cocurricularGetFacultyUserById($facultyUserId);
+        if (!$faculty) {
+            return ['success' => false, 'message' => 'The selected adviser is not a valid active Faculty member.'];
+        }
+        $adviserId = (int) $faculty['id'];
+        $adviserName = (string) $faculty['full_name'];
+        $adviserEmail = $faculty['email'] !== '' ? (string) $faculty['email'] : null;
+    }
+
+    try {
+        $stmt = $pdo->prepare('
+            INSERT INTO clubs (club_name, category, description, adviser_id, adviser, adviser_email, contact_phone, status, created_at, updated_at)
+            VALUES (:club_name, :category, :description, :adviser_id, :adviser, :adviser_email, :contact_phone, :status, NOW(), NOW())
+        ');
+        $stmt->execute([
+            ':club_name'     => $clubName,
+            ':category'      => $category,
+            ':description'   => $description,
+            ':adviser_id'    => $adviserId,
+            ':adviser'       => $adviserName,
+            ':adviser_email' => $adviserEmail,
+            ':contact_phone' => $contactPhoneVal,
+            ':status'        => $status,
+        ]);
+
+        $newClubId = (int) $pdo->lastInsertId();
+
+        if (function_exists('smsLogAudit')) {
+            smsLogAudit(
+                $createdByUserId,
+                'create_club',
+                "Created new club '{$clubName}' (ID: {$newClubId}) with status '{$status}'",
+                'cocurricular'
+            );
+        }
+
+        return [
+            'success' => true,
+            'message' => "Club '{$clubName}' has been successfully created.",
+            'club_id' => $newClubId,
+            'club'    => cocurricularGetClubById($newClubId),
+        ];
+    } catch (Throwable $e) {
+        error_log('cocurricularCreateClub error: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Failed to create club: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Update an existing student club in cocurricular_db.clubs.
+ * Uses explicit field handling and parameterized queries.
+ *
+ * @param int $clubId
+ * @param array $input
+ * @param int $updatedByUserId
+ * @return array{success: bool, message: string, club?: array}
+ */
+function cocurricularUpdateClub(int $clubId, array $input, int $updatedByUserId): array
+{
+    cocurricularEnsureAdviserSchema();
+
+    $pdo = cocurricularDb();
+    if (!$pdo || $clubId <= 0) {
+        return ['success' => false, 'message' => 'Invalid club selected.'];
+    }
+
+    $club = cocurricularGetClubById($clubId);
+    if (!$club) {
+        return ['success' => false, 'message' => 'Club not found.'];
+    }
+
+    $clubName = trim((string) ($input['club_name'] ?? $club['club_name']));
+    if ($clubName === '') {
+        return ['success' => false, 'message' => 'Club name is required.'];
+    }
+    if (mb_strlen($clubName) > 191) {
+        return ['success' => false, 'message' => 'Club name must not exceed 191 characters.'];
+    }
+
+    // Verify name uniqueness among OTHER clubs
+    $stmt = $pdo->prepare('SELECT id FROM clubs WHERE club_name = ? AND id != ? LIMIT 1');
+    $stmt->execute([$clubName, $clubId]);
+    if ($stmt->fetch()) {
+        return ['success' => false, 'message' => 'Another club already uses this name. Please choose a unique name.'];
+    }
+
+    $category = trim((string) ($input['category'] ?? $club['category']));
+    if ($category === '') {
+        return ['success' => false, 'message' => 'Category is required.'];
+    }
+    if (mb_strlen($category) > 120) {
+        return ['success' => false, 'message' => 'Category must not exceed 120 characters.'];
+    }
+
+    $description = trim((string) ($input['description'] ?? $club['description']));
+    if ($description === '') {
+        return ['success' => false, 'message' => 'Description is required.'];
+    }
+
+    $contactPhone = array_key_exists('contact_phone', $input)
+        ? trim((string) $input['contact_phone'])
+        : (string) ($club['contact_phone'] ?? '');
+    if ($contactPhone !== '' && mb_strlen($contactPhone) > 60) {
+        return ['success' => false, 'message' => 'Contact phone must not exceed 60 characters.'];
+    }
+    $contactPhoneVal = $contactPhone !== '' ? $contactPhone : null;
+
+    $status = trim((string) ($input['status'] ?? $club['status']));
+    if (!in_array($status, ['Active', 'Pending', 'Inactive'], true)) {
+        $status = (string) $club['status'];
+    }
+
+    // Determine adviser fields
+    $adviserId = !empty($club['adviser_id']) ? (int) $club['adviser_id'] : null;
+    $adviserName = (string) ($club['adviser'] ?? 'None');
+    $adviserEmail = !empty($club['adviser_email']) ? (string) $club['adviser_email'] : null;
+
+    if (array_key_exists('faculty_user_id', $input) || array_key_exists('adviser_id', $input)) {
+        $submittedFacultyId = isset($input['faculty_user_id']) ? (int) $input['faculty_user_id'] : (int) ($input['adviser_id'] ?? 0);
+        if ($submittedFacultyId > 0) {
+            $faculty = cocurricularGetFacultyUserById($submittedFacultyId);
+            if (!$faculty) {
+                return ['success' => false, 'message' => 'The selected adviser is not a valid active Faculty member.'];
+            }
+            $adviserId = (int) $faculty['id'];
+            $adviserName = (string) $faculty['full_name'];
+            $adviserEmail = $faculty['email'] !== '' ? (string) $faculty['email'] : null;
+        } elseif ($submittedFacultyId === 0) {
+            // Unassign explicitly
+            $adviserId = null;
+            $adviserName = 'None';
+            $adviserEmail = null;
+        }
+    }
+
+    try {
+        $stmt = $pdo->prepare('
+            UPDATE clubs
+            SET club_name = :club_name,
+                category = :category,
+                description = :description,
+                contact_phone = :contact_phone,
+                status = :status,
+                adviser_id = :adviser_id,
+                adviser = :adviser,
+                adviser_email = :adviser_email,
+                updated_at = NOW()
+            WHERE id = :id
+        ');
+        $stmt->execute([
+            ':club_name'     => $clubName,
+            ':category'      => $category,
+            ':description'   => $description,
+            ':contact_phone' => $contactPhoneVal,
+            ':status'        => $status,
+            ':adviser_id'    => $adviserId,
+            ':adviser'       => $adviserName,
+            ':adviser_email' => $adviserEmail,
+            ':id'            => $clubId,
+        ]);
+
+        if (function_exists('smsLogAudit')) {
+            smsLogAudit(
+                $updatedByUserId,
+                'update_club',
+                "Updated club '{$clubName}' (ID: {$clubId})",
+                'cocurricular'
+            );
+        }
+
+        return [
+            'success' => true,
+            'message' => "Club '{$clubName}' has been updated successfully.",
+            'club'    => cocurricularGetClubById($clubId),
+        ];
+    } catch (Throwable $e) {
+        error_log('cocurricularUpdateClub error: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Failed to update club: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Activate, deactivate, or update status of a club.
+ * Non-destructive: strictly a status change; preserves all child records.
+ *
+ * @param int $clubId
+ * @param string $newStatus 'Active' | 'Inactive' | 'Pending'
+ * @param int $updatedByUserId
+ * @return array{success: bool, message: string, club?: array}
+ */
+function cocurricularSetClubStatus(int $clubId, string $newStatus, int $updatedByUserId): array
+{
+    cocurricularEnsureAdviserSchema();
+
+    $pdo = cocurricularDb();
+    if (!$pdo || $clubId <= 0) {
+        return ['success' => false, 'message' => 'Invalid club selected.'];
+    }
+
+    if (!in_array($newStatus, ['Active', 'Inactive', 'Pending'], true)) {
+        return ['success' => false, 'message' => 'Invalid status specified. Valid statuses are Active, Inactive, and Pending.'];
+    }
+
+    $club = cocurricularGetClubById($clubId);
+    if (!$club) {
+        return ['success' => false, 'message' => 'Club not found.'];
+    }
+
+    try {
+        $stmt = $pdo->prepare('UPDATE clubs SET status = :status, updated_at = NOW() WHERE id = :id');
+        $stmt->execute([
+            ':status' => $newStatus,
+            ':id'     => $clubId,
+        ]);
+
+        if (function_exists('smsLogAudit')) {
+            smsLogAudit(
+                $updatedByUserId,
+                'set_club_status',
+                "Changed status of club '{$club['club_name']}' (ID: {$clubId}) from '{$club['status']}' to '{$newStatus}'",
+                'cocurricular'
+            );
+        }
+
+        $actionLabel = $newStatus === 'Active' ? 'activated' : ($newStatus === 'Inactive' ? 'deactivated' : 'set to Pending');
+        return [
+            'success' => true,
+            'message' => "Club '{$club['club_name']}' has been {$actionLabel}.",
+            'club'    => cocurricularGetClubById($clubId),
+        ];
+    } catch (Throwable $e) {
+        error_log('cocurricularSetClubStatus error: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Failed to update club status: ' . $e->getMessage()];
+    }
+}
+
 function cocurricularFetchClubOfficers(int $clubId): array
 {
     $pdo = cocurricularDb();
@@ -863,17 +1162,17 @@ function cocurricularFetchEventParticipants(int $eventId, string $search = '', s
         return [];
     }
 
-        $sql = 'SELECT ep.id, p.student_id, p.full_name, ep.registered_at, ep.status,
+        $sql = 'SELECT ep.id, ep.user_id, ep.reviewed_by, p.student_id, p.full_name, ep.registered_at, ep.status,
                ep.reviewed_at, ep.rejection_note, ep.event_id, ep.club_id,
-                                     e.title AS event_title, c.club_name,
-                                     CASE WHEN NOT EXISTS (
-                                             SELECT 1
-                                             FROM club_event_participants newer
-                                             WHERE newer.event_id = ep.event_id
-                                                 AND newer.user_id = ep.user_id
-                                                 AND (newer.registered_at > ep.registered_at
-                                                            OR (newer.registered_at = ep.registered_at AND newer.id > ep.id))
-                                     ) THEN 1 ELSE 0 END AS is_current
+               c.adviser_id, e.title AS event_title, c.club_name,
+               CASE WHEN NOT EXISTS (
+                   SELECT 1
+                   FROM club_event_participants newer
+                   WHERE newer.event_id = ep.event_id
+                       AND newer.user_id = ep.user_id
+                       AND (newer.registered_at > ep.registered_at
+                            OR (newer.registered_at = ep.registered_at AND newer.id > ep.id))
+               ) THEN 1 ELSE 0 END AS is_current
             FROM club_event_participants ep
             INNER JOIN sms2_db.users p ON p.id = ep.user_id
             INNER JOIN club_events e ON e.id = ep.event_id
@@ -1062,13 +1361,14 @@ function cocurricularGetEventParticipationStatus(int $eventId, int $userId): ?ar
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT status, rejection_note FROM club_event_participants WHERE event_id = ? AND user_id = ? ORDER BY registered_at DESC, id DESC LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, status, rejection_note FROM club_event_participants WHERE event_id = ? AND user_id = ? ORDER BY registered_at DESC, id DESC LIMIT 1');
     $stmt->execute([$eventId, $userId]);
     $participation = $stmt->fetch();
     if (!$participation) {
         return null;
     }
     return [
+        'id' => (int) $participation['id'],
         'status' => (string) $participation['status'],
         'rejection_note' => (string) ($participation['rejection_note'] ?? ''),
     ];
@@ -1086,14 +1386,20 @@ function cocurricularRegisterEventInterest(int $eventId, int $userId, int $clubI
         $eventStmt = $pdo->prepare(
             'SELECT id, club_id, status, event_date
              FROM club_events
-             WHERE id = ? AND club_id = ?
+             WHERE id = ?' . ($clubId > 0 ? ' AND club_id = ?' : '') . '
              LIMIT 1'
         );
-        $eventStmt->execute([$eventId, $clubId]);
+        $eventStmt->execute($clubId > 0 ? [$eventId, $clubId] : [$eventId]);
         $event = $eventStmt->fetch();
         if (!$event || (string) $event['status'] !== 'Published' || (string) $event['event_date'] < date('Y-m-d')) {
             $pdo->rollBack();
             return ['status' => 'invalid_event'];
+        }
+
+        // Verify that student holds an Approved membership in this club
+        if (!cocurricularHasApprovedMembershipForClub((int) $event['club_id'], $userId)) {
+            $pdo->rollBack();
+            return ['status' => 'not_member'];
         }
 
         $latestStmt = $pdo->prepare(
@@ -1144,7 +1450,7 @@ function cocurricularFetchEventParticipant(int $participantId): ?array
     $stmt = $pdo->prepare(
         'SELECT ep.id, ep.event_id, ep.club_id, ep.user_id, ep.status, ep.registered_at,
                 ep.reviewed_at, ep.reviewed_by, ep.rejection_note,
-                e.title AS event_title, c.club_name, u.full_name, u.student_id
+                e.title AS event_title, c.club_name, c.adviser_id, u.full_name, u.student_id
          FROM club_event_participants ep
          INNER JOIN club_events e ON e.id = ep.event_id
          INNER JOIN clubs c ON c.id = ep.club_id
@@ -1157,10 +1463,10 @@ function cocurricularFetchEventParticipant(int $participantId): ?array
     return $participant ?: null;
 }
 
-function cocurricularReviewEventParticipant(int $participantId, int $osaUserId, string $status, string $rejectionNote = ''): array
+function cocurricularReviewEventParticipant(int $participantId, int $reviewerUserId, string $status, string $rejectionNote = ''): array
 {
     $pdo = cocurricularDb();
-    if (!$pdo || $participantId <= 0 || $osaUserId <= 0 || !in_array($status, ['Approved', 'Rejected'], true)) {
+    if (!$pdo || $participantId <= 0 || $reviewerUserId <= 0 || !in_array($status, ['Approved', 'Rejected'], true)) {
         return ['status' => 'error'];
     }
     if ($status === 'Rejected' && trim($rejectionNote) === '') {
@@ -1168,7 +1474,19 @@ function cocurricularReviewEventParticipant(int $participantId, int $osaUserId, 
     }
 
     $participant = cocurricularFetchEventParticipant($participantId);
-    if (!$participant || (string) $participant['status'] !== 'Pending') {
+    if (!$participant) {
+        return ['status' => 'error'];
+    }
+
+    // Strict Authorization: Must be assigned Faculty Adviser for this club OR Co-Curricular Admin / OSA
+    $isOsaAdmin = smsRoleAllowedForModule(['osa'], 'cocurricular');
+    $isAssignedAdviser = cocurricularIsFacultyAdviserOfClub($reviewerUserId, (int) $participant['club_id']);
+
+    if (!$isOsaAdmin && !$isAssignedAdviser) {
+        return ['status' => 'unauthorized'];
+    }
+
+    if ((string) $participant['status'] !== 'Pending') {
         return ['status' => 'invalid_transition'];
     }
 
@@ -1182,7 +1500,7 @@ function cocurricularReviewEventParticipant(int $participantId, int $osaUserId, 
     );
     $executed = $stmt->execute([
         ':status' => $status,
-        ':reviewed_by' => $osaUserId,
+        ':reviewed_by' => $reviewerUserId,
         ':rejection_note' => $status === 'Rejected' ? trim($rejectionNote) : null,
         ':id' => $participantId,
     ]);
@@ -1193,6 +1511,16 @@ function cocurricularReviewEventParticipant(int $participantId, int $osaUserId, 
         } else {
             @cocurricularNotifyParticipationRejected($participantId, trim($rejectionNote));
         }
+
+        if (function_exists('smsLogAudit')) {
+            smsLogAudit(
+                $reviewerUserId,
+                'review_event_participant',
+                "Participant #{$participantId} marked as {$status} by user #{$reviewerUserId}",
+                'cocurricular'
+            );
+        }
+
         return ['status' => strtolower($status)];
     }
 
@@ -1432,25 +1760,39 @@ function cocurricularFetchAttendanceEvents(): array
     return $stmt->fetchAll();
 }
 
-function cocurricularFetchAttendanceClubs(): array
+function cocurricularFetchAttendanceClubs(?int $facultyUserId = null): array
 {
     $pdo = cocurricularDb();
     if (!$pdo) {
         return [];
     }
-    $stmt = $pdo->query(
-        'SELECT DISTINCT c.id, c.club_name
-         FROM clubs c
-         INNER JOIN club_events e ON e.club_id = c.id AND e.status = "Published"
-         INNER JOIN club_event_participants ep ON ep.event_id = e.id AND ep.status = "Approved"
-         WHERE NOT EXISTS (
-             SELECT 1 FROM club_event_participants newer
-             WHERE newer.event_id = ep.event_id AND newer.user_id = ep.user_id
-               AND (newer.registered_at > ep.registered_at
-                    OR (newer.registered_at = ep.registered_at AND newer.id > ep.id))
-         )
-         ORDER BY c.club_name ASC'
-    );
+
+    $whereClause = 'WHERE NOT EXISTS (
+        SELECT 1 FROM club_event_participants newer
+        WHERE newer.event_id = ep.event_id AND newer.user_id = ep.user_id
+          AND (newer.registered_at > ep.registered_at
+               OR (newer.registered_at = ep.registered_at AND newer.id > ep.id))
+    )';
+    $params = [];
+
+    if ($facultyUserId !== null && $facultyUserId > 0) {
+        $whereClause .= ' AND c.adviser_id = ?';
+        $params[] = $facultyUserId;
+    }
+
+    $sql = "SELECT DISTINCT c.id, c.club_name
+     FROM clubs c
+     INNER JOIN club_events e ON e.club_id = c.id AND e.status = 'Published'
+     INNER JOIN club_event_participants ep ON ep.event_id = e.id AND ep.status = 'Approved'
+     {$whereClause}
+     ORDER BY c.club_name ASC";
+
+    if (empty($params)) {
+        $stmt = $pdo->query($sql);
+    } else {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+    }
     return $stmt->fetchAll();
 }
 
@@ -2096,63 +2438,155 @@ function cocurricularGetMembershipApplications(): array
         return [];
     }
 
-        $sql = 'SELECT a.*, c.id AS club_id, c.club_name, c.adviser, c.adviser_email, c.category
+    $sql = 'SELECT a.*, c.id AS club_id, c.club_name, c.adviser, c.adviser_id, c.adviser_email, c.category
             FROM club_membership_applications a
             INNER JOIN clubs c ON c.id = a.club_id
             ORDER BY a.submitted_at DESC';
     $stmt = $pdo->prepare($sql);
-        $stmt->execute();
+    $stmt->execute();
     return $stmt->fetchAll();
 }
 
 /**
-     * Fetch one application and verify that its club still exists.
+ * Fetch one application and verify that its club still exists.
  */
-    function cocurricularGetMembershipApplication(int $applicationId): ?array
+function cocurricularGetMembershipApplication(int $applicationId): ?array
 {
     $pdo = cocurricularDb();
     if (!$pdo) {
         return null;
     }
 
-        $sql = 'SELECT a.*, c.id AS club_id, c.club_name, c.adviser, c.adviser_email, c.category
+    $sql = 'SELECT a.*, c.id AS club_id, c.club_name, c.adviser, c.adviser_id, c.adviser_email, c.category
             FROM club_membership_applications a
             INNER JOIN clubs c ON c.id = a.club_id
             WHERE a.id = ? LIMIT 1';
     $stmt = $pdo->prepare($sql);
-        $stmt->execute([$applicationId]);
+    $stmt->execute([$applicationId]);
     $row = $stmt->fetch();
     return $row ?: null;
 }
 
 /**
- * Update a pending application status.
+ * Update a pending application status to Approved or Rejected.
+ * Records reviewer ID, review timestamp, and rejection reason (if rejected).
+ *
+ * @param int $applicationId
+ * @param string $newStatus 'Approved'|'Rejected'
+ * @param int $reviewedBy User ID of reviewer (Faculty Adviser or OSA)
+ * @param string|null $rejectionReason
+ * @return bool
  */
-function cocurricularUpdateMembershipApplicationStatus(int $applicationId, string $newStatus): bool
-{
+function cocurricularUpdateMembershipApplicationStatus(
+    int $applicationId,
+    string $newStatus,
+    int $reviewedBy = 0,
+    ?string $rejectionReason = null
+): bool {
     $pdo = cocurricularDb();
-    if (!$pdo) {
+    if (!$pdo || $applicationId <= 0) {
         return false;
     }
 
-    // Only allow specific statuses
-    if (!in_array($newStatus, ['Pending', 'Approved', 'Rejected'], true)) {
+    // Only allow specific transition statuses from Pending
+    if (!in_array($newStatus, ['Approved', 'Rejected'], true)) {
         return false;
     }
 
     try {
-        $stmt = $pdo->prepare(
-            'UPDATE club_membership_applications
-             SET status = :status, reviewed_at = NOW()
-             WHERE id = :id AND status = "Pending"'
-        );
+        $sql = 'UPDATE club_membership_applications
+                SET status = :status,
+                    reviewed_at = NOW(),
+                    reviewed_by = :reviewed_by,
+                    rejection_reason = :rejection_reason,
+                    updated_at = NOW()
+                WHERE id = :id AND status = "Pending"';
 
-        return $stmt->execute([
+        $stmt = $pdo->prepare($sql);
+        $executed = $stmt->execute([
             ':status' => $newStatus,
+            ':reviewed_by' => $reviewedBy > 0 ? $reviewedBy : null,
+            ':rejection_reason' => ($newStatus === 'Rejected' && $rejectionReason !== null && trim($rejectionReason) !== '') ? trim($rejectionReason) : null,
             ':id' => $applicationId,
         ]);
-    } catch (Throwable $e) {
+
+        if ($executed && $stmt->rowCount() > 0) {
+            if (function_exists('smsLogAudit')) {
+                smsLogAudit(
+                    $reviewedBy > 0 ? $reviewedBy : null,
+                    'review_membership_application',
+                    "Application #{$applicationId} marked as {$newStatus}",
+                    'cocurricular'
+                );
+            }
+            return true;
+        }
+
         return false;
+    } catch (Throwable $e) {
+        error_log('cocurricularUpdateMembershipApplicationStatus error: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Resign from an approved club membership.
+ * Transitions status from 'Approved' to 'Resigned' and sets resigned_at = NOW().
+ * Preserves the historical record and frees active membership constraint.
+ *
+ * @param int $clubId
+ * @param int $userId
+ * @return array ['success' => bool, 'message' => string]
+ */
+function cocurricularResignMembership(int $clubId, int $userId): array
+{
+    $pdo = cocurricularDb();
+    if (!$pdo || $clubId <= 0 || $userId <= 0) {
+        return ['success' => false, 'message' => 'Invalid club or user.'];
+    }
+
+    try {
+        $findStmt = $pdo->prepare('
+            SELECT id, club_id, user_id, status
+            FROM club_membership_applications
+            WHERE club_id = :club_id AND user_id = :user_id AND status = "Approved"
+            ORDER BY submitted_at DESC
+            LIMIT 1
+        ');
+        $findStmt->execute([':club_id' => $clubId, ':user_id' => $userId]);
+        $app = $findStmt->fetch();
+
+        if (!$app) {
+            return ['success' => false, 'message' => 'No active approved membership found for this club.'];
+        }
+
+        $appId = (int) $app['id'];
+
+        $updateStmt = $pdo->prepare('
+            UPDATE club_membership_applications
+            SET status = "Resigned",
+                resigned_at = NOW(),
+                updated_at = NOW()
+            WHERE id = :id AND status = "Approved"
+        ');
+        $res = $updateStmt->execute([':id' => $appId]);
+
+        if ($res && $updateStmt->rowCount() > 0) {
+            if (function_exists('smsLogAudit')) {
+                smsLogAudit(
+                    $userId,
+                    'resign_club_membership',
+                    "User #{$userId} resigned from club #{$clubId} (Application #{$appId})",
+                    'cocurricular'
+                );
+            }
+            return ['success' => true, 'message' => 'You have successfully resigned from the club.'];
+        }
+
+        return ['success' => false, 'message' => 'Unable to update membership status.'];
+    } catch (Throwable $e) {
+        error_log('cocurricularResignMembership error: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Database error while processing resignation.'];
     }
 }
 
@@ -2430,7 +2864,7 @@ function cocurricularFetchEventsForAssignedClub(int $clubId, ?string $status = n
  */
 function cocurricularCreateAdviserEvent(int $clubId, int $facultyUserId, array $data): array
 {
-    if (!cocurricularIsFacultyAdviserOfClub($facultyUserId, $clubId)) {
+    if (!cocurricularIsFacultyAdviserOfClub($facultyUserId, $clubId) && !smsRoleAllowedForModule(['osa'], 'cocurricular')) {
         return ['success' => false, 'message' => 'Unauthorized. You are not the assigned adviser of this club.'];
     }
 
@@ -2440,9 +2874,9 @@ function cocurricularCreateAdviserEvent(int $clubId, int $facultyUserId, array $
     $eventDate = trim((string) ($data['event_date'] ?? ''));
     $startTime = trim((string) ($data['start_time'] ?? ''));
     $endTime = trim((string) ($data['end_time'] ?? ''));
-    $venue = trim((string) ($data['venue'] ?? ''));
-    $status = in_array(($data['status'] ?? 'Published'), ['Draft', 'Published', 'Completed', 'Cancelled'], true)
-        ? (string) $data['status']
+    $rawStatus = (string) ($data['status'] ?? 'Published');
+    $status = in_array($rawStatus, ['Draft', 'Published', 'Completed', 'Cancelled'], true)
+        ? $rawStatus
         : 'Published';
     $isPinned = !empty($data['is_pinned']) ? 1 : 0;
 
@@ -2488,10 +2922,19 @@ function cocurricularCreateAdviserEvent(int $clubId, int $facultyUserId, array $
         // Notify club members if published
         if ($status === 'Published' && function_exists('cocurricularNotifyEventPublished')) {
             try {
-                cocurricularNotifyEventPublished($eventId, $clubId);
+                cocurricularNotifyEventPublished($eventId);
             } catch (Throwable $e) {
                 // Ignore notification failure
             }
+        }
+
+        if (function_exists('smsLogAudit')) {
+            smsLogAudit(
+                $facultyUserId,
+                'create_event',
+                "Event #{$eventId} created for club #{$clubId}",
+                'cocurricular'
+            );
         }
 
         return [
@@ -2502,6 +2945,190 @@ function cocurricularCreateAdviserEvent(int $clubId, int $facultyUserId, array $
     } catch (Throwable $e) {
         error_log('cocurricularCreateAdviserEvent error: ' . $e->getMessage());
         return ['success' => false, 'message' => 'Failed to schedule event: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Securely update an event by the assigned Faculty Adviser or OSA.
+ * Preserves the original club_id to prevent cross-club event reassignment.
+ *
+ * @param int $eventId
+ * @param int $facultyUserId
+ * @param array $data
+ * @return array{success: bool, message: string}
+ */
+function cocurricularUpdateAdviserEvent(int $eventId, int $facultyUserId, array $data): array
+{
+    if ($eventId <= 0 || $facultyUserId <= 0) {
+        return ['success' => false, 'message' => 'Invalid event or user.'];
+    }
+
+    $event = cocurricularGetEventById($eventId);
+    if (!$event) {
+        return ['success' => false, 'message' => 'Event not found.'];
+    }
+
+    $actualClubId = (int) $event['club_id'];
+    $isOsa = smsRoleAllowedForModule(['osa'], 'cocurricular');
+    $isAdviser = cocurricularIsFacultyAdviserOfClub($facultyUserId, $actualClubId);
+
+    if (!$isOsa && !$isAdviser) {
+        return ['success' => false, 'message' => 'Unauthorized. You are not the assigned adviser of this club.'];
+    }
+
+    $title = trim((string) ($data['title'] ?? $event['title']));
+    $description = trim((string) ($data['description'] ?? $event['description']));
+    $eventType = trim((string) ($data['event_type'] ?? $event['event_type']));
+    $eventDate = trim((string) ($data['event_date'] ?? $event['event_date']));
+    $startTime = trim((string) ($data['start_time'] ?? $event['start_time']));
+    $endTime = trim((string) ($data['end_time'] ?? $event['end_time']));
+    $venue = trim((string) ($data['venue'] ?? ($event['venue'] ?? '')));
+    $isPinned = isset($data['is_pinned']) ? (!empty($data['is_pinned']) ? 1 : 0) : (int) $event['is_pinned'];
+
+    $status = in_array((string) ($data['status'] ?? $event['status']), ['Draft', 'Published', 'Completed', 'Cancelled'], true)
+        ? (string) ($data['status'] ?? $event['status'])
+        : (string) $event['status'];
+
+    if ($title === '') {
+        return ['success' => false, 'message' => 'Please provide an event title.'];
+    }
+    if ($eventDate === '') {
+        return ['success' => false, 'message' => 'Please provide an event date.'];
+    }
+    if ($startTime === '' || $endTime === '') {
+        return ['success' => false, 'message' => 'Please provide start and end times.'];
+    }
+    if ($startTime !== '' && $endTime !== '' && $endTime < $startTime) {
+        return ['success' => false, 'message' => 'End time must not be earlier than start time.'];
+    }
+
+    $pdo = cocurricularDb();
+    if (!$pdo) {
+        return ['success' => false, 'message' => 'Database unavailable.'];
+    }
+
+    try {
+        // club_id is strictly preserved as $actualClubId (never user input)
+        $stmt = $pdo->prepare('
+            UPDATE club_events
+            SET title = :title,
+                description = :description,
+                event_type = :event_type,
+                event_date = :event_date,
+                start_time = :start_time,
+                end_time = :end_time,
+                venue = :venue,
+                status = :status,
+                is_pinned = :is_pinned,
+                updated_at = NOW()
+            WHERE id = :id AND club_id = :club_id
+        ');
+        $executed = $stmt->execute([
+            ':title'       => $title,
+            ':description' => $description,
+            ':event_type'  => $eventType !== '' ? $eventType : 'Activity',
+            ':event_date'  => $eventDate,
+            ':start_time'  => $startTime,
+            ':end_time'    => $endTime,
+            ':venue'       => $venue !== '' ? $venue : 'Campus Venue',
+            ':status'      => $status,
+            ':is_pinned'   => $isPinned,
+            ':id'          => $eventId,
+            ':club_id'     => $actualClubId,
+        ]);
+
+        if ($executed) {
+            if ($status === 'Published' && (string) $event['status'] !== 'Published' && function_exists('cocurricularNotifyEventPublished')) {
+                try {
+                    @cocurricularNotifyEventPublished($eventId);
+                } catch (Throwable $e) {}
+            }
+
+            if (function_exists('smsLogAudit')) {
+                smsLogAudit(
+                    $facultyUserId,
+                    'update_event',
+                    "Event #{$eventId} updated for club #{$actualClubId}",
+                    'cocurricular'
+                );
+            }
+
+            return ['success' => true, 'message' => 'Event updated successfully.'];
+        }
+
+        return ['success' => false, 'message' => 'Unable to update event.'];
+    } catch (Throwable $e) {
+        error_log('cocurricularUpdateAdviserEvent error: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Failed to update event: ' . $e->getMessage()];
+    }
+}
+
+/**
+ * Update event status (Draft, Published, Completed, Cancelled) with adviser/OSA authorization.
+ *
+ * @param int $eventId
+ * @param string $newStatus 'Draft'|'Published'|'Completed'|'Cancelled'
+ * @param int $userId
+ * @return array{success: bool, message: string}
+ */
+function cocurricularSetEventStatus(int $eventId, string $newStatus, int $userId): array
+{
+    if ($eventId <= 0 || $userId <= 0) {
+        return ['success' => false, 'message' => 'Invalid event or user.'];
+    }
+
+    if (!in_array($newStatus, ['Draft', 'Published', 'Completed', 'Cancelled'], true)) {
+        return ['success' => false, 'message' => 'Invalid event status requested.'];
+    }
+
+    $event = cocurricularGetEventById($eventId);
+    if (!$event) {
+        return ['success' => false, 'message' => 'Event not found.'];
+    }
+
+    $actualClubId = (int) $event['club_id'];
+    $isOsa = smsRoleAllowedForModule(['osa'], 'cocurricular');
+    $isAdviser = cocurricularIsFacultyAdviserOfClub($userId, $actualClubId);
+
+    if (!$isOsa && !$isAdviser) {
+        return ['success' => false, 'message' => 'Unauthorized. You cannot modify events for this club.'];
+    }
+
+    $pdo = cocurricularDb();
+    if (!$pdo) {
+        return ['success' => false, 'message' => 'Database unavailable.'];
+    }
+
+    try {
+        $stmt = $pdo->prepare('UPDATE club_events SET status = :status, updated_at = NOW() WHERE id = :id');
+        $executed = $stmt->execute([
+            ':status' => $newStatus,
+            ':id'     => $eventId,
+        ]);
+
+        if ($executed && $stmt->rowCount() > 0) {
+            if ($newStatus === 'Published' && (string) $event['status'] !== 'Published' && function_exists('cocurricularNotifyEventPublished')) {
+                try {
+                    @cocurricularNotifyEventPublished($eventId);
+                } catch (Throwable $e) {}
+            }
+
+            if (function_exists('smsLogAudit')) {
+                smsLogAudit(
+                    $userId,
+                    'set_event_status',
+                    "Event #{$eventId} status changed to {$newStatus}",
+                    'cocurricular'
+                );
+            }
+
+            return ['success' => true, 'message' => "Event marked as {$newStatus}."];
+        }
+
+        return ['success' => false, 'message' => 'Event status was already set or could not be updated.'];
+    } catch (Throwable $e) {
+        error_log('cocurricularSetEventStatus error: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Failed to update event status: ' . $e->getMessage()];
     }
 }
 
@@ -2530,6 +3157,10 @@ function cocurricularCreateAdviserAnnouncement(int $clubId, int $facultyUserId, 
         return ['success' => false, 'message' => 'Please provide announcement content.'];
     }
 
+    $isAiGenerated = !empty($data['is_ai_generated']) ? 1 : 0;
+    $aiModel = $isAiGenerated ? trim((string) ($data['ai_model'] ?? 'gpt-4.1')) : null;
+    $aiGeneratedAt = $isAiGenerated ? trim((string) ($data['ai_generated_at'] ?? date('Y-m-d H:i:s'))) : null;
+
     $pdo = cocurricularDb();
     if (!$pdo) {
         return ['success' => false, 'message' => 'Database unavailable.'];
@@ -2538,23 +3169,26 @@ function cocurricularCreateAdviserAnnouncement(int $clubId, int $facultyUserId, 
     try {
         $stmt = $pdo->prepare('
             INSERT INTO club_announcements (
-                club_id, title, content, is_pinned, posted_at, created_at, updated_at
+                club_id, title, content, is_pinned, is_ai_generated, ai_model, ai_generated_at, posted_at, created_at, updated_at
             ) VALUES (
-                :club_id, :title, :content, :is_pinned, NOW(), NOW(), NOW()
+                :club_id, :title, :content, :is_pinned, :is_ai_generated, :ai_model, :ai_generated_at, NOW(), NOW(), NOW()
             )
         ');
         $stmt->execute([
-            ':club_id'   => $clubId,
-            ':title'     => $title,
-            ':content'   => $content,
-            ':is_pinned' => $isPinned,
+            ':club_id'         => $clubId,
+            ':title'           => $title,
+            ':content'         => $content,
+            ':is_pinned'       => $isPinned,
+            ':is_ai_generated' => $isAiGenerated,
+            ':ai_model'        => $aiModel,
+            ':ai_generated_at' => $aiGeneratedAt,
         ]);
         $announcementId = (int) $pdo->lastInsertId();
 
         // Notify club members
-        if (function_exists('cocurricularNotifyAnnouncementCreated')) {
+        if (function_exists('cocurricularNotifyAnnouncementPublished')) {
             try {
-                cocurricularNotifyAnnouncementCreated($announcementId, $clubId);
+                cocurricularNotifyAnnouncementPublished($announcementId);
             } catch (Throwable $e) {
                 // Ignore notification failure
             }

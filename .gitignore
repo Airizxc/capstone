@@ -2,28 +2,51 @@
 .env
 .env.*
 !.env.example
+modules/*/.env
+modules/*/.env.*
+!modules/*/.env.example
 
-# Private credentials and Service Accounts
-cocurricular/config/firebase-service-account.json
-!cocurricular/config/firebase-service-account.example.json
-
-# Local configuration overrides
+# Machine-specific config (copy from config/local.example.php)
 config/local.php
-cocurricular/config/cocurricular-config.php
-!cocurricular/config/cocurricular-config.example.php
+config/local.infinityfree.php
+modules/cocurricular/config/firebase-service-account.json
+!modules/cocurricular/config/firebase-service-account.example.json
 
-# Storage and logs
+# Secrets and generated keys
 storage/keys/*
 !storage/keys/.gitignore
+!storage/keys/.htaccess
+
+# Database dumps, backups, and user uploads
+*.sql
+*.sqlite
+*.db
 storage/backups/*
 !storage/backups/.gitignore
+!storage/backups/.htaccess
 storage/uploads/*
-!storage/uploads/.gitignore
-*.log
+!storage/uploads/.htaccess
 
-# OS & IDE
+# Scratch temporary debug files (keep official test suites)
+scratch/*
+!scratch/lint_all_cocurricular.php
+!scratch/test_faculty_event_actions_alignment.php
+!scratch/test_phase8_membership_actions.php
+!scratch/test_ai_announcement_workflow.php
+!scratch/test_event_ai_announcement_workflow.php
+
+# Accidental nested duplicate copy
+sms2_system/
+
+# OS / editor
 .DS_Store
 Thumbs.db
 desktop.ini
-.vscode/
+*.swp
+*.swo
 .idea/
+.vscode/
+*.log
+.git-sync.lock
+.git-sync.log
+.git-sync.pending

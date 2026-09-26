@@ -1,3 +1,5 @@
+@import url("../../../../assets/vendor/fontawesome/css/all.min.css");
+
 /* Co-Curricular module — theme-aware styles
    Uses global theme tokens (defined in assets/css/theme.css)
    Do NOT hard-code light/dark colors here. */
@@ -564,8 +566,13 @@ button.club-calendar-day:hover { background: rgba(var(--bs-primary-rgb), 0.1); b
 }
 
 .cocurricular-modal .modal-dialog {
-    max-width: 860px;
     width: 100%;
+}
+.cocurricular-modal .modal-dialog:not(.modal-lg):not(.modal-xl) {
+    max-width: 560px;
+}
+.cocurricular-modal .modal-dialog.modal-lg {
+    max-width: 860px;
 }
 .cocurricular-modal .modal-content {
     border-radius: 1rem;
@@ -606,15 +613,260 @@ button.club-calendar-day:hover { background: rgba(var(--bs-primary-rgb), 0.1); b
 }
 .application-actions {
     white-space: nowrap;
+    position: relative;
 }
 .application-action-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
+    min-width: 32px;
+    min-height: 32px;
+    width: auto;
+    padding: 0.28rem 0.65rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     vertical-align: middle;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #3b82f6;
+    color: #3b82f6;
+    background-color: transparent;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+.application-action-btn:hover,
+.application-action-btn:focus-visible {
+    background-color: rgba(59, 130, 246, 0.12);
+    border-color: #60a5fa;
+    color: #60a5fa;
+    outline: none;
+}
+.application-action-btn.show,
+.application-action-btn[aria-expanded="true"] {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.28) !important;
+}
+
+/* Scoped Dark Navy Action Dropdown Menu */
+.application-action-menu {
+    background-color: #0f172a !important;
+    border: 1px solid rgba(148, 163, 184, 0.22) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.65), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+    width: 260px;
+    min-width: 240px;
+    max-width: 280px;
+    padding: 0.35rem !important;
+    z-index: 1070 !important;
+    color: #e2e8f0 !important;
+    font-size: 0.82rem;
+    overflow: visible !important;
+}
+
+/* Student summary header inside dropdown */
+.application-action-header {
+    padding: 0.55rem 0.65rem 0.5rem;
+    background: rgba(30, 41, 59, 0.65);
+    border-radius: 7px;
+    margin-bottom: 0.3rem;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+.application-action-header-title {
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 0.25rem;
+}
+.application-summary-name {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.25;
+}
+.application-summary-meta {
+    font-size: 0.73rem;
+    color: #94a3b8;
+    line-height: 1.35;
+    margin-top: 0.1rem;
+}
+.application-summary-meta code {
+    font-size: 0.72rem;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+}
+.application-summary-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.4rem;
+    padding-top: 0.35rem;
+    border-top: 1px dashed rgba(148, 163, 184, 0.2);
+}
+.application-summary-status .status-label {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+/* Status Badges */
+.app-menu-status {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    padding: 0.2rem 0.55rem !important;
+    border-radius: 9999px !important;
+    text-transform: capitalize;
+}
+
+/* Section divider */
+.application-action-divider {
+    height: 1px;
+    background: rgba(148, 163, 184, 0.15);
+    margin: 0.35rem 0.2rem;
+}
+
+/* Section labels: VIEW, APPLICATION ACTIONS, STATUS */
+.application-action-section-label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    padding: 0.25rem 0.55rem 0.15rem;
+    margin-top: 0.15rem;
+}
+
+/* Action items list */
+.application-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.application-action-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.42rem 0.65rem;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+}
+.application-action-item:hover,
+.application-action-item:focus-visible {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    outline: none;
+}
+
+/* View Details Action */
+.application-action-item.action-item-view .action-icon {
+    color: #3b82f6;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+}
+.application-action-item.action-item-view:hover,
+.application-action-item.action-item-view:focus-visible {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+
+/* Accept / Approve Application Action */
+.application-action-item.action-item-accept .action-icon {
+    color: #22c55e;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+}
+.application-action-item.action-item-accept {
+    color: #22c55e;
+}
+.application-action-item.action-item-accept:hover,
+.application-action-item.action-item-accept:focus-visible {
+    background-color: rgba(34, 197, 94, 0.16);
+    color: #4ade80;
+}
+
+/* Reject Application Action */
+.application-action-item.action-item-reject .action-icon {
+    color: #ef4444;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+}
+.application-action-item.action-item-reject {
+    color: #ef4444;
+}
+.application-action-item.action-item-reject:hover,
+.application-action-item.action-item-reject:focus-visible {
+    background-color: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+}
+
+/* Status Indicators (Non-clickable state display) */
+.application-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0.15rem 0;
+    cursor: default;
+    user-select: none;
+}
+.application-status-indicator.indicator-approved {
+    background-color: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.28);
+    color: #22c55e;
+}
+.application-status-indicator.indicator-approved .status-icon {
+    color: #22c55e;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+}
+
+.application-status-indicator.indicator-rejected {
+    background-color: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    color: #ef4444;
+}
+.application-status-indicator.indicator-rejected .status-icon {
+    color: #ef4444;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+}
+
+/* Prevent dropdown clipping in table-responsive container */
+@media (min-width: 768px) {
+    .table-responsive:has(.application-action-menu.show) {
+        overflow: visible !important;
+    }
 }
 
 .cocurricular-stepper {
@@ -819,3 +1071,2075 @@ button.club-calendar-day:hover { background: rgba(var(--bs-primary-rgb), 0.1); b
     .cocurricular-success-animation { width: 64px; height: 64px; }
     .cocurricular-success-svg { width: 64px; height: 64px; }
 }
+
+//* ============================================================
+   Redesigned Co-Curricular Club Directory UI — Final Visual Polish Pass
+   ============================================================ */
+
+.club-directory-header {
+    margin-bottom: 1.5rem;
+}
+
+.club-directory-header-content {
+    max-width: 820px;
+}
+
+.club-header-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sms-primary);
+    margin-bottom: 0.4rem;
+}
+
+.club-directory-title {
+    font-size: clamp(1.45rem, 2.8vw, 1.85rem);
+    font-weight: 800;
+    color: var(--sms-heading);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
+    line-height: 1.2;
+}
+
+.club-directory-subtitle {
+    color: var(--sms-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 0;
+}
+
+/* Search and Filter Toolbar */
+.club-filter-toolbar {
+    background: var(--sms-surface);
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius-lg, 12px);
+    box-shadow: var(--sms-shadow-xs);
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.35rem;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.club-search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.club-search-icon {
+    position: absolute;
+    left: 0.95rem;
+    color: var(--sms-text-muted);
+    font-size: 1.1rem;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.club-search-input {
+    height: 44px;
+    padding-left: 2.65rem;
+    padding-right: 2.75rem;
+    background: var(--sms-surface-muted, #f8fafc);
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius-sm, 8px);
+    color: var(--sms-text);
+    font-size: 0.9rem;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.club-search-input:focus,
+.club-search-input:focus-visible {
+    background: var(--sms-surface, #ffffff);
+    border-color: var(--sms-primary);
+    box-shadow: 0 0 0 3px var(--sms-primary-xlight, rgba(30, 64, 175, 0.16));
+    outline: none;
+}
+
+.club-search-clear-btn {
+    position: absolute;
+    right: 0.5rem;
+    background: transparent;
+    border: 0;
+    color: var(--sms-text-muted);
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    transition: color 0.15s, background-color 0.15s;
+    z-index: 2;
+}
+
+.club-search-clear-btn:hover {
+    color: var(--sms-heading);
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.club-search-clear-btn:focus-visible {
+    outline: 2px solid var(--sms-primary);
+    outline-offset: 2px;
+}
+
+[data-theme="dark"] .club-search-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.club-filter-select {
+    height: 44px;
+    background-color: var(--sms-surface-muted, #f8fafc);
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius-sm, 8px);
+    color: var(--sms-text);
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding-left: 0.85rem;
+    padding-right: 2rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.club-filter-select option {
+    background-color: var(--sms-surface, #ffffff);
+    color: var(--sms-text, #334155);
+}
+
+.club-filter-select:focus,
+.club-filter-select:focus-visible {
+    background-color: var(--sms-surface, #ffffff);
+    border-color: var(--sms-primary);
+    box-shadow: 0 0 0 3px var(--sms-primary-xlight, rgba(30, 64, 175, 0.16));
+    outline: none;
+}
+
+/* Results Header Bar */
+.club-results-bar {
+    margin-bottom: 1.25rem;
+}
+
+.club-results-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--sms-heading);
+    margin: 0;
+}
+
+.club-results-count {
+    color: var(--sms-text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+/* Grid Container */
+.club-grid-container {
+    overflow-x: clip;
+    max-width: 100%;
+}
+
+/* Club Cards — Uniform Heights and Professional Aesthetics */
+.club-card {
+    background: var(--sms-surface);
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius-lg, 12px);
+    box-shadow: var(--sms-shadow-xs);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.club-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sms-shadow-hover);
+    border-color: rgba(30, 64, 175, 0.25);
+}
+
+.club-card.cocurricular-card .card-body {
+    min-height: auto;
+    padding: 1.25rem;
+}
+
+/* Card Cover / Top Logo Area */
+.club-card-cover {
+    height: 130px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-cover-bg, linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%));
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+}
+
+.club-card-cover-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+                      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.10) 0%, transparent 40%);
+    pointer-events: none;
+}
+
+.club-card-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    position: absolute;
+    inset: 0;
+}
+
+.club-card-emblem-wrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.club-card-emblem {
+    width: 62px;
+    height: 62px;
+    min-width: 62px;
+    min-height: 62px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--sms-primary);
+    transition: transform 0.2s ease;
+    user-select: none;
+}
+
+.club-card:hover .club-card-emblem {
+    transform: scale(1.05);
+}
+
+.club-card-initials {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--sms-primary);
+    text-transform: uppercase;
+}
+
+.club-card-category-chip {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Body */
+.club-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Consistent Title Line Clamping and Height */
+.club-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sms-heading);
+    margin-bottom: 0.45rem;
+    line-height: 1.35;
+    min-height: 2.85rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
+}
+
+/* Consistent Description Line Clamping and Height */
+.club-card-desc {
+    color: var(--sms-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin-bottom: 0.85rem;
+    min-height: 2.55rem;
+    max-height: 2.55rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: break-word;
+}
+
+/* Metadata Box */
+.club-card-meta-box {
+    background: var(--sms-surface-muted, #f8fafc);
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius-sm, 8px);
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+}
+
+.club-card-meta-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    min-height: 1.3rem;
+}
+
+.club-card-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--sms-text);
+}
+
+.club-card-meta-item .ti {
+    color: var(--sms-primary);
+    font-size: 0.95rem;
+}
+
+.club-card-adviser {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--sms-text);
+    min-width: 0;
+    min-height: 1.6rem;
+    font-size: 0.78rem;
+}
+
+.club-card-adviser .ti {
+    color: var(--sms-text-muted);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.club-card-adviser-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--sms-heading);
+}
+
+.club-card-adviser-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.2rem 0.45rem;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+/* Card Status Row */
+.club-card-status-row {
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 1.85rem;
+}
+
+.club-status-pill {
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    letter-spacing: 0.02em;
+}
+
+/* High Contrast Status Badges (WCAG AA & AAA Compliant) */
+.club-status-open {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.club-status-member {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.club-status-pending {
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.club-status-closed {
+    background: var(--sms-surface-muted, #f8fafc);
+    color: var(--sms-text, #334155);
+    border: 1px solid var(--sms-border, #cbd5e1);
+}
+
+/* Dark Mode Overrides for Status Badges */
+[data-theme="dark"] .club-status-open {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="dark"] .club-status-member {
+    background: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+[data-theme="dark"] .club-status-pending {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="dark"] .club-status-closed {
+    background: var(--sms-surface-muted, #0f172a);
+    color: var(--sms-text-muted, #94a3b8);
+    border-color: var(--sms-border, rgba(148, 163, 184, 0.2));
+}
+
+/* Card Actions — Action Hierarchy & Keyboard Focus */
+.club-card-actions {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding-top: 0.35rem;
+}
+
+.club-card-actions .btn {
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--sms-radius-sm, 8px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+    min-height: 36px;
+}
+
+.club-card-actions .btn:focus-visible {
+    outline: 2px solid var(--sms-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.25);
+}
+
+.club-card-btn-view {
+    flex: 1 1 0;
+    min-width: 95px;
+    background-color: transparent;
+    color: var(--sms-primary);
+    border-color: var(--sms-border);
+}
+
+.club-card-btn-view:hover {
+    background-color: var(--sms-primary);
+    border-color: var(--sms-primary);
+    color: #ffffff;
+}
+
+.club-card-btn-action {
+    flex: 1 1 0;
+    min-width: 95px;
+}
+
+/* Secondary Admin Buttons */
+.club-card-actions .btn-outline-secondary {
+    border-color: var(--sms-border);
+    color: var(--sms-text);
+}
+
+.club-card-actions .btn-outline-secondary:hover {
+    background-color: var(--sms-surface-muted, #f1f5f9);
+    border-color: var(--sms-border);
+    color: var(--sms-heading);
+}
+
+/* Empty State Card */
+.club-empty-card {
+    background: var(--sms-surface);
+    border: 1px dashed var(--sms-border);
+    border-radius: var(--sms-radius-lg, 12px);
+    padding: 3.5rem 1.5rem;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.club-empty-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(var(--bs-primary-rgb, 30, 64, 175), 0.08);
+    color: var(--sms-primary);
+    font-size: 1.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .club-empty-icon {
+    background: rgba(96, 165, 250, 0.15);
+    color: #93c5fd;
+}
+
+.club-empty-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--sms-heading);
+    margin-bottom: 0.35rem;
+}
+
+.club-empty-text {
+    font-size: 0.85rem;
+    color: var(--sms-text-muted);
+    margin-bottom: 1.25rem;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+.club-empty-card .btn:focus-visible {
+    outline: 2px solid var(--sms-primary);
+    outline-offset: 2px;
+}
+
+/* Skeleton Loading Placeholder */
+.club-card-skeleton {
+    background: var(--sms-surface);
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius-lg, 12px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.club-skeleton-cover {
+    height: 130px;
+    background: linear-gradient(90deg, var(--sms-surface-muted, #f8fafc) 25%, var(--sms-border, #e2e8f0) 50%, var(--sms-surface-muted, #f8fafc) 75%);
+    background-size: 200% 100%;
+    animation: clubSkeletonShimmer 1.5s infinite;
+}
+
+.club-skeleton-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.club-skeleton-line {
+    background: linear-gradient(90deg, var(--sms-surface-muted, #f8fafc) 25%, var(--sms-border, #e2e8f0) 50%, var(--sms-surface-muted, #f8fafc) 75%);
+    background-size: 200% 100%;
+    animation: clubSkeletonShimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 14px;
+    margin-bottom: 0.6rem;
+}
+
+.club-skeleton-line.title {
+    height: 22px;
+    width: 70%;
+    margin-bottom: 0.85rem;
+}
+
+.club-skeleton-line.desc {
+    width: 100%;
+    height: 12px;
+}
+
+.club-skeleton-line.desc-short {
+    width: 82%;
+    height: 12px;
+    margin-bottom: 0.85rem;
+}
+
+.club-skeleton-line.meta {
+    height: 52px;
+    border-radius: var(--sms-radius-sm, 8px);
+    width: 100%;
+    margin-bottom: 0.85rem;
+}
+
+.club-skeleton-line.status {
+    height: 24px;
+    border-radius: 999px;
+    width: 45%;
+    margin-bottom: 1rem;
+}
+
+.club-skeleton-line.actions {
+    height: 38px;
+    border-radius: var(--sms-radius-sm, 8px);
+    width: 100%;
+    margin-top: auto;
+}
+
+@keyframes clubSkeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ============================================================
+   Responsive Refinements: Desktop, Tablet, and Mobile
+   ============================================================ */
+
+@media (max-width: 991.98px) {
+    .club-directory-header {
+        margin-bottom: 1.25rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .club-filter-toolbar {
+        padding: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .club-search-input {
+        font-size: 0.88rem;
+    }
+
+    .club-filter-select {
+        font-size: 0.84rem;
+        padding-left: 0.75rem;
+    }
+
+    .club-card-cover {
+        height: 120px;
+    }
+
+    .club-skeleton-cover {
+        height: 120px;
+    }
+
+    .club-card.cocurricular-card .card-body,
+    .club-skeleton-body {
+        padding: 1rem;
+    }
+
+    .club-card-title {
+        font-size: 1rem;
+        min-height: 2.7rem;
+    }
+
+    .club-card-desc {
+        font-size: 0.8rem;
+        min-height: 2.48rem;
+        max-height: 2.48rem;
+    }
+
+    .club-card-actions .btn {
+        min-height: 42px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.82rem;
+    }
+
+    .club-search-clear-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .club-results-bar {
+        gap: 0.6rem;
+    }
+
+    .club-results-bar .btn {
+        width: 100%;
+    }
+
+    .club-card-actions .btn {
+        flex: 1 1 calc(50% - 0.25rem);
+    }
+
+    .club-card-actions form {
+        flex: 1 1 calc(50% - 0.25rem);
+        display: flex;
+    }
+
+    .club-card-actions form .btn {
+        width: 100%;
+    }
+
+    .club-empty-card {
+        padding: 2.5rem 1rem;
+    }
+}
+
+@media (max-width: 389.98px) {
+    .club-filter-select {
+        padding-left: 0.55rem;
+        font-size: 0.8rem;
+    }
+
+    .club-card-emblem {
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+        min-height: 56px;
+    }
+
+    .club-card-initials {
+        font-size: 1.05rem;
+    }
+
+    .club-card-actions .btn {
+        font-size: 0.78rem;
+        padding: 0.45rem 0.5rem;
+    }
+}
+
+/* ==========================================================================
+   Co-Curricular Membership Applications Action Dropdown
+   ========================================================================== */
+
+.application-action-btn {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 40px !important;
+    border-radius: 10px !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    border: 1px solid #3b82f6 !important;
+    color: #3b82f6 !important;
+    background-color: transparent !important;
+    transition: all 0.15s ease-in-out !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+}
+
+.application-action-btn::after {
+    display: none !important;
+}
+
+.application-action-btn:hover {
+    background-color: rgba(59, 130, 246, 0.12) !important;
+    color: #60a5fa !important;
+    border-color: #60a5fa !important;
+}
+
+.application-action-btn[aria-expanded="true"],
+.application-action-btn.show {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35) !important;
+}
+
+.application-action-menu {
+    background: #0f172a !important;
+    border: 1px solid rgba(148, 163, 184, 0.22) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.65), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+    width: 260px !important;
+    min-width: 240px !important;
+    max-width: 280px !important;
+    padding: 0.5rem 0 !important;
+    z-index: 1070 !important;
+    overflow: visible !important;
+}
+
+[data-theme="light"] .application-action-menu {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+}
+
+.application-action-header {
+    background: rgba(30, 41, 59, 0.7);
+    border-radius: 6px;
+    margin: 0.25rem 0.5rem 0.5rem 0.5rem;
+    padding: 0.5rem 0.625rem;
+}
+
+[data-theme="light"] .application-action-header {
+    background: #f1f5f9;
+}
+
+.application-action-header-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    margin-bottom: 0.25rem;
+}
+
+[data-theme="light"] .application-action-header-title {
+    color: #64748b;
+}
+
+.application-summary-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+[data-theme="light"] .application-summary-name {
+    color: #0f172a;
+}
+
+.application-summary-meta {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 0.1rem;
+}
+
+[data-theme="light"] .application-summary-meta {
+    color: #64748b;
+}
+
+.application-summary-meta code {
+    font-size: 0.72rem;
+    color: #93c5fd;
+    background: transparent;
+    padding: 0;
+}
+
+[data-theme="light"] .application-summary-meta code {
+    color: #2563eb;
+}
+
+.application-summary-status {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.application-summary-status .status-label {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+[data-theme="light"] .application-summary-status .status-label {
+    color: #64748b;
+}
+
+.application-summary-status .badge {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.45rem;
+}
+
+.application-action-divider {
+    height: 1px;
+    background: rgba(148, 163, 184, 0.15);
+    margin: 0.35rem 0.5rem;
+}
+
+[data-theme="light"] .application-action-divider {
+    background: #e2e8f0;
+}
+
+.application-action-section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0.25rem 0.75rem;
+}
+
+[data-theme="light"] .application-action-section-label {
+    color: #64748b;
+}
+
+.application-action-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.application-action-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    text-align: left;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+}
+
+.application-action-item:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.application-action-item .action-icon {
+    width: 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 0.5rem;
+}
+
+.action-item-view {
+    color: #cbd5e1;
+}
+
+.action-item-view:hover {
+    color: #60a5fa;
+    background-color: rgba(59, 130, 246, 0.12);
+}
+
+[data-theme="light"] .action-item-view {
+    color: #334155;
+}
+
+[data-theme="light"] .action-item-view:hover {
+    color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.action-item-accept {
+    color: #4ade80;
+}
+
+.action-item-accept:hover {
+    color: #86efac;
+    background-color: rgba(34, 197, 94, 0.14);
+}
+
+[data-theme="light"] .action-item-accept {
+    color: #16a34a;
+}
+
+[data-theme="light"] .action-item-accept:hover {
+    color: #15803d;
+    background-color: #f0fdf4;
+}
+
+.action-item-reject {
+    color: #f87171;
+}
+
+.action-item-reject:hover {
+    color: #fca5a5;
+    background-color: rgba(239, 68, 68, 0.14);
+}
+
+[data-theme="light"] .action-item-reject {
+    color: #dc2626;
+}
+
+[data-theme="light"] .action-item-reject:hover {
+    color: #b91c1c;
+    background-color: #fef2f2;
+}
+
+.application-status-indicator {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 1rem);
+    margin: 0.25rem 0.5rem;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: default;
+    user-select: none;
+}
+
+.application-status-indicator .status-icon {
+    width: 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 0.5rem;
+}
+
+.indicator-approved {
+    background-color: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+}
+
+[data-theme="light"] .indicator-approved {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+.indicator-rejected {
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+[data-theme="light"] .indicator-rejected {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+/* Prevent table container clipping dropdown menu */
+.table-responsive:has(.application-action-menu.show) {
+    overflow: visible !important;
+}
+
+/* ==========================================================================
+   Faculty Adviser Workspace: Club Activities & Events Actions Alignment
+   ========================================================================== */
+
+.club-events-table th,
+.club-events-table td,
+.event-actions-column,
+th.event-actions-column,
+td.event-actions-cell {
+    vertical-align: middle;
+}
+
+.event-actions-column,
+th.event-actions-column,
+td.event-actions-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.event-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+}
+
+.event-actions form,
+.event-actions .event-action-form {
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+/* Consistent square icon-only button sizing (40px x 40px) across Co-Curricular tables.
+   Inherits display: inline-flex, centering, border-radius (10px), transitions,
+   focus-visible, and semantic outline color styling directly from global theme.css and Bootstrap. */
+.event-actions .event-action-btn,
+.event-actions .btn,
+.cocurricular-table-actions .btn,
+.cocurricular-table-actions .cocurricular-icon-btn,
+.application-action-btn.cocurricular-icon-btn,
+.cocurricular-icon-btn {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    padding: 0;
+    flex: 0 0 40px;
+    white-space: nowrap;
+}
+
+.event-actions .event-action-edit {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    height: 40px;
+    padding: 0;
+    flex: 0 0 40px;
+}
+
+.event-actions .event-action-btn i,
+.event-actions .btn i,
+.cocurricular-table-actions .btn i,
+.cocurricular-table-actions .cocurricular-icon-btn i,
+.application-action-btn.cocurricular-icon-btn i,
+.cocurricular-icon-btn i {
+    width: auto;
+    flex: 0 0 auto;
+    font-size: 0.95rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+.cocurricular-table-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+}
+
+.cocurricular-table-actions form {
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Faculty Adviser Workspace: Event Status Badges
+   ========================================================================== */
+
+.event-status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 24px !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    border: 1px solid transparent !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+}
+
+/* Published: green badge */
+.event-status-badge.event-status-published {
+    background-color: rgba(34, 197, 94, 0.15) !important;
+    color: #4ade80 !important;
+    border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+/* Draft: gray/neutral badge */
+.event-status-badge.event-status-draft {
+    background-color: rgba(148, 163, 184, 0.15) !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+/* Pending / In Review: yellow/orange badge */
+.event-status-badge.event-status-pending,
+.event-status-badge.event-status-in-review {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Cancelled: red badge */
+.event-status-badge.event-status-cancelled {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Completed: blue/neutral badge */
+.event-status-badge.event-status-completed {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+    border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+/* Unknown / Fallback */
+.event-status-badge.event-status-unknown {
+    background-color: rgba(100, 116, 139, 0.15) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(100, 116, 139, 0.25) !important;
+}
+
+/* Light mode overrides if user switches theme */
+[data-theme="light"] .event-status-badge.event-status-published {
+    background-color: #ecfdf5 !important;
+    color: #065f46 !important;
+    border-color: #a7f3d0 !important;
+}
+[data-theme="light"] .event-status-badge.event-status-draft {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .event-status-badge.event-status-pending,
+[data-theme="light"] .event-status-badge.event-status-in-review {
+    background-color: #fffbeb !important;
+    color: #92400e !important;
+    border-color: #fde68a !important;
+}
+[data-theme="light"] .event-status-badge.event-status-cancelled {
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+    border-color: #fecaca !important;
+}
+[data-theme="light"] .event-status-badge.event-status-completed {
+    background-color: #eff6ff !important;
+    color: #1e40af !important;
+    border-color: #bfdbfe !important;
+}
+[data-theme="light"] .event-status-badge.event-status-unknown {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* ==========================================================================
+   Faculty Adviser Workspace: Top Context Card & Statistics
+   ========================================================================== */
+
+.faculty-club-context-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.faculty-club-context-card .faculty-club-info h2 {
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+}
+
+.faculty-stat-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.15s ease;
+}
+
+.faculty-stat-card .card-body {
+    padding: 1.25rem;
+}
+
+/* ==========================================================================
+   Faculty Adviser Workspace: Clean Tab Navigation
+   ========================================================================== */
+
+.cocurricular-nav-pills {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: 0;
+}
+
+.cocurricular-nav-pills .nav-link {
+    color: #64748b;
+    font-weight: 500;
+    padding: 0.625rem 0.5rem;
+    border-radius: 0;
+    background: transparent;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.cocurricular-nav-pills .nav-link:hover {
+    color: var(--sms-primary, #0d6efd);
+    background: transparent;
+}
+
+.cocurricular-nav-pills .nav-link.active {
+    color: var(--sms-primary, #0d6efd);
+    background: transparent;
+    border-bottom: 2px solid var(--sms-primary, #0d6efd);
+    font-weight: 600;
+}
+
+.cocurricular-nav-pills .nav-link .badge {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    margin-left: 0.375rem;
+}
+
+.cocurricular-nav-pills .nav-link.active .badge {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: var(--sms-primary, #0d6efd);
+}
+
+/* ==========================================================================
+   Faculty Adviser Workspace: Compact Assigned Club Cards
+   ========================================================================== */
+
+.assigned-clubs-list {
+    margin-top: 0.25rem;
+}
+
+.assigned-club-card {
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.assigned-club-card.is-active-workspace {
+    border-left: 4px solid var(--sms-primary);
+}
+
+.assigned-club-card .card-body {
+    padding: 0.875rem 1.25rem;
+}
+
+.assigned-club-card .assigned-club-name {
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.assigned-club-card .assigned-club-action .btn {
+    min-width: 170px;
+    justify-content: center;
+}
+
+@media (max-width: 576px) {
+    .cocurricular-nav-pills {
+        gap: 0.75rem;
+    }
+
+    .assigned-club-card .card-body {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.875rem 1rem;
+    }
+
+    .assigned-club-card .assigned-club-action {
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+
+    .assigned-club-card .assigned-club-action .btn {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* ==========================================================================
+   Co-Curricular Modals: Compact, Content-Driven Layout & Spacing
+   ========================================================================== */
+
+.cocurricular-modal .modal-dialog,
+.cocurricular-runtime-modal .modal-dialog,
+.application-details-modal .modal-dialog,
+#eventModal .modal-dialog,
+#eventAiDraftModal .modal-dialog,
+#announcementModal .modal-dialog,
+#approveConfirmModal .modal-dialog,
+#rejectConfirmModal .modal-dialog,
+#applicationActionsModal .modal-dialog,
+#announcementDetailModal .modal-dialog,
+#eventDetailModal .modal-dialog {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    min-height: auto;
+    height: auto;
+}
+
+.cocurricular-modal .modal-content,
+.cocurricular-runtime-modal .modal-content,
+.application-details-modal .modal-content,
+#postAnnouncementModal .modal-content,
+#eventModal .modal-content,
+#eventAiDraftModal .modal-content,
+#announcementModal .modal-content,
+#approveConfirmModal .modal-content,
+#rejectConfirmModal .modal-content,
+#applicationActionsModal .modal-content,
+#announcementDetailModal .modal-content,
+#eventDetailModal .modal-content {
+    border-radius: 10px;
+    border: 1px solid var(--sms-border, rgba(0, 0, 0, 0.1));
+    background-color: var(--sms-surface, #ffffff);
+    color: var(--sms-text, #334155);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+    min-height: auto;
+    height: auto;
+}
+
+.cocurricular-modal .modal-header,
+.cocurricular-runtime-modal .modal-header,
+.application-details-modal .modal-header,
+#postAnnouncementModal .modal-header,
+#eventModal .modal-header,
+#eventAiDraftModal .modal-header,
+#announcementModal .modal-header,
+#approveConfirmModal .modal-header,
+#rejectConfirmModal .modal-header,
+#applicationActionsModal .modal-header,
+#announcementDetailModal .modal-header,
+#eventDetailModal .modal-header {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--sms-border, rgba(0, 0, 0, 0.07));
+    background-color: var(--sms-surface, #ffffff);
+}
+
+.cocurricular-modal .modal-header .modal-title,
+.cocurricular-runtime-modal .modal-header .modal-title,
+.application-details-modal .modal-header .modal-title,
+#postAnnouncementModal .modal-header .modal-title,
+#eventModal .modal-header .modal-title,
+#eventAiDraftModal .modal-header .modal-title,
+#announcementModal .modal-header .modal-title,
+#approveConfirmModal .modal-header .modal-title,
+#rejectConfirmModal .modal-header .modal-title,
+#applicationActionsModal .modal-header .modal-title,
+#announcementDetailModal .modal-header .modal-title,
+#eventDetailModal .modal-header .modal-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--sms-heading, #1e293b);
+}
+
+.cocurricular-modal .modal-header p,
+.cocurricular-runtime-modal .modal-header p,
+.application-details-modal .modal-header p {
+    margin-top: 0.15rem;
+    font-size: 0.8125rem;
+}
+
+.cocurricular-modal .modal-header .btn-close,
+.cocurricular-runtime-modal .modal-header .btn-close,
+.application-details-modal .modal-header .btn-close,
+#postAnnouncementModal .modal-header .btn-close,
+#eventModal .modal-header .btn-close,
+#eventAiDraftModal .modal-header .btn-close,
+#announcementModal .modal-header .btn-close,
+#approveConfirmModal .modal-header .btn-close,
+#rejectConfirmModal .modal-header .btn-close,
+#applicationActionsModal .modal-header .btn-close {
+    margin: -0.25rem -0.25rem -0.25rem auto;
+    padding: 0.375rem;
+    font-size: 0.75rem;
+}
+
+.cocurricular-modal .modal-body,
+.cocurricular-runtime-modal .modal-body,
+.application-details-modal .modal-body,
+#postAnnouncementModal .modal-body,
+#eventModal .modal-body,
+#eventAiDraftModal .modal-body,
+#announcementModal .modal-body,
+#approveConfirmModal .modal-body,
+#rejectConfirmModal .modal-body,
+#applicationActionsModal .modal-body,
+#announcementDetailModal .modal-body,
+#eventDetailModal .modal-body {
+    padding: 1rem 1.25rem;
+    min-height: auto;
+    background-color: var(--sms-surface, #ffffff);
+    color: var(--sms-text, #334155);
+}
+
+.cocurricular-modal .modal-footer,
+.cocurricular-runtime-modal .modal-footer,
+.application-details-modal .modal-footer,
+#postAnnouncementModal .modal-footer,
+#eventModal .modal-footer,
+#eventAiDraftModal .modal-footer,
+#announcementModal .modal-footer,
+#approveConfirmModal .modal-footer,
+#rejectConfirmModal .modal-footer,
+#applicationActionsModal .modal-footer,
+#announcementDetailModal .modal-footer,
+#eventDetailModal .modal-footer {
+    padding: 0.625rem 1.25rem;
+    border-top: 1px solid var(--sms-border, rgba(0, 0, 0, 0.07));
+    background-color: var(--sms-surface-muted, #fafafa);
+    gap: 0.5rem;
+}
+
+/* Compact, content-driven spacing for form controls inside modals */
+.cocurricular-modal .modal-body .mb-3,
+.cocurricular-runtime-modal .modal-body .mb-3,
+.application-details-modal .modal-body .mb-3,
+#eventModal .modal-body .mb-3,
+#eventAiDraftModal .modal-body .mb-3,
+#announcementModal .modal-body .mb-3,
+#approveConfirmModal .modal-body .mb-3,
+#rejectConfirmModal .modal-body .mb-3,
+#applicationActionsModal .modal-body .mb-3 {
+    margin-bottom: 0.625rem !important;
+}
+
+.cocurricular-modal .modal-body .mb-4,
+.cocurricular-runtime-modal .modal-body .mb-4,
+.application-details-modal .modal-body .mb-4,
+#eventModal .modal-body .mb-4,
+#eventAiDraftModal .modal-body .mb-4,
+#announcementModal .modal-body .mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+.cocurricular-modal .modal-body .mb-2,
+.cocurricular-runtime-modal .modal-body .mb-2,
+.application-details-modal .modal-body .mb-2,
+#eventModal .modal-body .mb-2,
+#approveConfirmModal .modal-body .mb-2,
+#rejectConfirmModal .modal-body .mb-2 {
+    margin-bottom: 0.4rem !important;
+}
+
+.cocurricular-modal .modal-body .row.g-2,
+.cocurricular-runtime-modal .modal-body .row.g-2 {
+    --bs-gutter-y: 0.45rem;
+    --bs-gutter-x: 0.625rem;
+}
+
+.cocurricular-modal .modal-body .row.g-3,
+.cocurricular-runtime-modal .modal-body .row.g-3,
+.application-details-modal .modal-body .row.g-3,
+#eventModal .modal-body .row.g-3,
+#eventAiDraftModal .modal-body .row.g-3,
+#announcementModal .modal-body .row.g-3 {
+    --bs-gutter-y: 0.625rem;
+    --bs-gutter-x: 0.75rem;
+}
+
+.cocurricular-modal .modal-body .form-label,
+.cocurricular-runtime-modal .modal-body .form-label,
+#eventModal .modal-body .form-label,
+#eventAiDraftModal .modal-body .form-label,
+#announcementModal .modal-body .form-label,
+#approveConfirmModal .modal-body .form-label,
+#rejectConfirmModal .modal-body .form-label {
+    margin-bottom: 0.2rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #334155;
+}
+
+.cocurricular-modal .modal-body .form-control,
+.cocurricular-modal .modal-body .form-select,
+.cocurricular-runtime-modal .modal-body .form-control,
+.cocurricular-runtime-modal .modal-body .form-select,
+#eventModal .modal-body .form-control,
+#eventModal .modal-body .form-select,
+#eventAiDraftModal .modal-body .form-control,
+#announcementModal .modal-body .form-control,
+#announcementModal .modal-body .form-select,
+#rejectConfirmModal .modal-body .form-control {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    border-radius: 6px;
+}
+
+.cocurricular-modal .modal-body textarea.form-control,
+.cocurricular-runtime-modal .modal-body textarea.form-control,
+#eventModal .modal-body textarea.form-control,
+#eventAiDraftModal .modal-body textarea.form-control,
+#announcementModal .modal-body textarea.form-control,
+#rejectConfirmModal .modal-body textarea.form-control {
+    min-height: auto;
+    resize: vertical;
+}
+
+.cocurricular-modal .modal-body .form-text,
+.cocurricular-runtime-modal .modal-body .form-text,
+#eventModal .modal-body .form-text,
+#announcementModal .modal-body .form-text,
+#rejectConfirmModal .modal-body .form-text {
+    margin-top: 0.2rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.cocurricular-modal .modal-body .form-check,
+.cocurricular-runtime-modal .modal-body .form-check {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Compact inner cards and alerts */
+.cocurricular-modal .modal-body .card,
+.cocurricular-runtime-modal .modal-body .card,
+.application-details-modal .modal-body .card,
+#approveConfirmModal .modal-body .card,
+#rejectConfirmModal .modal-body .card,
+#applicationActionsModal .modal-body .card {
+    margin-bottom: 0.625rem !important;
+}
+
+.cocurricular-modal .modal-body .card-body,
+.cocurricular-runtime-modal .modal-body .card-body,
+.application-details-modal .modal-body .card-body,
+#approveConfirmModal .modal-body .card-body,
+#rejectConfirmModal .modal-body .card-body,
+#applicationActionsModal .modal-body .card-body {
+    padding: 0.625rem 0.875rem !important;
+}
+
+.cocurricular-modal .modal-body .alert,
+.cocurricular-runtime-modal .modal-body .alert,
+#approveConfirmModal .modal-body .alert,
+#rejectConfirmModal .modal-body .alert {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.625rem;
+    font-size: 0.85rem;
+}
+
+.cocurricular-modal .modal-body hr,
+.application-details-modal .modal-body hr {
+    margin: 0.5rem 0;
+}
+
+.cocurricular-modal .modal-body p:last-child,
+.cocurricular-runtime-modal .modal-body p:last-child {
+    margin-bottom: 0;
+}
+
+.cocurricular-modal .modal-footer .btn,
+.cocurricular-runtime-modal .modal-footer .btn,
+.application-details-modal .modal-footer .btn,
+#postAnnouncementModal .modal-footer .btn,
+#eventModal .modal-footer .btn,
+#eventAiDraftModal .modal-footer .btn,
+#announcementModal .modal-footer .btn,
+#approveConfirmModal .modal-footer .btn,
+#rejectConfirmModal .modal-footer .btn,
+#applicationActionsModal .modal-footer .btn {
+    padding: 0.4rem 0.875rem;
+    font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   Co-Curricular Modals: Dark Mode Architecture & Consistency
+   ========================================================================== */
+[data-theme="dark"] .cocurricular-modal .modal-content,
+[data-theme="dark"] .cocurricular-runtime-modal .modal-content,
+[data-theme="dark"] .application-details-modal .modal-content,
+[data-theme="dark"] #postAnnouncementModal .modal-content,
+[data-theme="dark"] #eventAiModal .modal-content {
+    background-color: var(--sms-surface, #121c34);
+    border-color: var(--sms-border, rgba(148, 163, 184, 0.2));
+    color: var(--sms-text, #cbd5e1);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] .cocurricular-modal .modal-header,
+[data-theme="dark"] .cocurricular-runtime-modal .modal-header,
+[data-theme="dark"] .application-details-modal .modal-header,
+[data-theme="dark"] #postAnnouncementModal .modal-header,
+[data-theme="dark"] #eventAiModal .modal-header {
+    background-color: var(--sms-surface, #121c34);
+    border-bottom-color: var(--sms-border, rgba(148, 163, 184, 0.15));
+}
+
+[data-theme="dark"] .cocurricular-modal .modal-header .modal-title,
+[data-theme="dark"] .cocurricular-runtime-modal .modal-header .modal-title,
+[data-theme="dark"] .application-details-modal .modal-header .modal-title,
+[data-theme="dark"] #postAnnouncementModal .modal-header .modal-title,
+[data-theme="dark"] #eventAiModal .modal-header .modal-title {
+    color: var(--sms-heading, #f8fafc);
+}
+
+[data-theme="dark"] .cocurricular-modal .modal-header p,
+[data-theme="dark"] .cocurricular-runtime-modal .modal-header p,
+[data-theme="dark"] .application-details-modal .modal-header p,
+[data-theme="dark"] #postAnnouncementModal .modal-header p,
+[data-theme="dark"] #eventAiModal .modal-header p,
+[data-theme="dark"] .cocurricular-modal .modal-header small,
+[data-theme="dark"] #postAnnouncementModal .modal-header small,
+[data-theme="dark"] #eventAiModal .modal-header small {
+    color: var(--sms-text-muted, #94a3b8) !important;
+}
+
+[data-theme="dark"] .cocurricular-modal .modal-body,
+[data-theme="dark"] .cocurricular-runtime-modal .modal-body,
+[data-theme="dark"] .application-details-modal .modal-body,
+[data-theme="dark"] #postAnnouncementModal .modal-body,
+[data-theme="dark"] #eventAiModal .modal-body {
+    background-color: var(--sms-surface, #121c34);
+    color: var(--sms-text, #cbd5e1);
+}
+
+[data-theme="dark"] .cocurricular-modal .modal-footer,
+[data-theme="dark"] .cocurricular-runtime-modal .modal-footer,
+[data-theme="dark"] .application-details-modal .modal-footer,
+[data-theme="dark"] #postAnnouncementModal .modal-footer,
+[data-theme="dark"] #eventAiModal .modal-footer {
+    background-color: rgba(15, 23, 42, 0.75);
+    border-top-color: var(--sms-border, rgba(148, 163, 184, 0.15));
+}
+
+[data-theme="dark"] .cocurricular-modal .form-control,
+[data-theme="dark"] .cocurricular-modal .form-select,
+[data-theme="dark"] #postAnnouncementModal .form-control,
+[data-theme="dark"] #postAnnouncementModal .form-select,
+[data-theme="dark"] #eventAiModal .form-control,
+[data-theme="dark"] #eventAiModal .form-select {
+    background-color: rgba(15, 23, 42, 0.65);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .cocurricular-modal .form-control:focus,
+[data-theme="dark"] .cocurricular-modal .form-select:focus,
+[data-theme="dark"] #postAnnouncementModal .form-control:focus,
+[data-theme="dark"] #postAnnouncementModal .form-select:focus,
+[data-theme="dark"] #eventAiModal .form-control:focus,
+[data-theme="dark"] #eventAiModal .form-select:focus {
+    background-color: rgba(15, 23, 42, 0.85);
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+[data-theme="dark"] .cocurricular-modal .form-control::placeholder,
+[data-theme="dark"] #postAnnouncementModal .form-control::placeholder,
+[data-theme="dark"] #eventAiModal .form-control::placeholder {
+    color: #64748b;
+}
+
+[data-theme="dark"] .cocurricular-modal .form-label,
+[data-theme="dark"] #postAnnouncementModal .form-label,
+[data-theme="dark"] #eventAiModal .form-label {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .cocurricular-modal .form-text,
+[data-theme="dark"] #postAnnouncementModal .form-text,
+[data-theme="dark"] #eventAiModal .form-text {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .cocurricular-modal .btn-close,
+[data-theme="dark"] #postAnnouncementModal .btn-close,
+[data-theme="dark"] #eventAiModal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.75;
+}
+
+[data-theme="dark"] .cocurricular-modal .btn-close:hover,
+[data-theme="dark"] #postAnnouncementModal .btn-close:hover,
+[data-theme="dark"] #eventAiModal .btn-close:hover {
+    opacity: 1;
+}
+
+[data-theme="dark"] .cocurricular-modal .btn-outline-secondary,
+[data-theme="dark"] #postAnnouncementModal .btn-outline-secondary,
+[data-theme="dark"] #eventAiModal .btn-outline-secondary {
+    background-color: rgba(30, 41, 59, 0.5);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .cocurricular-modal .btn-outline-secondary:hover,
+[data-theme="dark"] #postAnnouncementModal .btn-outline-secondary:hover,
+[data-theme="dark"] #eventAiModal .btn-outline-secondary:hover {
+    background-color: rgba(51, 65, 85, 0.8);
+    border-color: rgba(148, 163, 184, 0.4);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .cocurricular-modal .form-check-label,
+[data-theme="dark"] #postAnnouncementModal .form-check-label {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .cocurricular-modal .form-check-input,
+[data-theme="dark"] #postAnnouncementModal .form-check-input {
+    background-color: rgba(15, 23, 42, 0.65);
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+[data-theme="dark"] .cocurricular-modal .form-check-input:checked,
+[data-theme="dark"] #postAnnouncementModal .form-check-input:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* ==========================================================================
+   Co-Curricular Announcement UI & AI Assistant Features
+   ========================================================================== */
+
+/* Character counter wrap */
+.cocurricular-textarea-wrap {
+    position: relative;
+}
+
+.cocurricular-textarea-wrap textarea.form-control {
+    padding-bottom: 1.6rem;
+    resize: vertical;
+    min-height: 96px;
+}
+
+.cocurricular-char-count {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.4rem;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+}
+
+[data-theme="dark"] .cocurricular-char-count {
+    color: #64748b;
+}
+
+/* AI Assistant Helper Card */
+.cocurricular-ai-helper-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0.875rem;
+    border-radius: 8px;
+    background-color: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.16);
+}
+
+[data-theme="dark"] .cocurricular-ai-helper-card {
+    background-color: rgba(30, 58, 138, 0.18);
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.cocurricular-ai-helper-content {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.cocurricular-ai-sparkle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #2563eb;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .cocurricular-ai-sparkle-icon {
+    color: #60a5fa;
+}
+
+.cocurricular-ai-helper-text {
+    min-width: 0;
+}
+
+.cocurricular-ai-helper-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.25;
+}
+
+[data-theme="dark"] .cocurricular-ai-helper-title {
+    color: #f1f5f9;
+}
+
+.cocurricular-ai-helper-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.25;
+}
+
+[data-theme="dark"] .cocurricular-ai-helper-subtitle {
+    color: #94a3b8;
+}
+
+.cocurricular-ai-generate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border-radius: 6px;
+    color: #1d4ed8;
+    background-color: #ffffff;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+}
+
+.cocurricular-ai-generate-btn:hover {
+    background-color: #eff6ff;
+    border-color: #2563eb;
+    color: #1e40af;
+}
+
+[data-theme="dark"] .cocurricular-ai-generate-btn {
+    background-color: rgba(15, 23, 42, 0.65);
+    border-color: rgba(96, 165, 250, 0.35);
+    color: #93c5fd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .cocurricular-ai-generate-btn:hover {
+    background-color: rgba(30, 58, 138, 0.4);
+    border-color: #60a5fa;
+    color: #ffffff;
+}
+
+/* Subtle primary post button styling */
+#postAnnouncementModal .btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    font-weight: 500;
+}
+
+#postAnnouncementModal .btn-primary:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+[data-theme="dark"] #postAnnouncementModal .btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+[data-theme="dark"] #postAnnouncementModal .btn-primary:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+/* Responsive adjustment for small screens */
+@media (max-width: 576px) {
+    .cocurricular-ai-helper-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .cocurricular-ai-generate-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Event to Announcement AI Workflow */
+.cocurricular-event-summary-box {
+    background: var(--sms-surface-muted, #f8f9fa);
+    border-color: var(--sms-border, #dee2e6) !important;
+}
+
+[data-theme="dark"] .cocurricular-event-summary-box {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--sms-border, #333) !important;
+}
+
+.event-actions .event-action-ai {
+    color: var(--sms-primary, #0d6efd);
+    border-color: var(--sms-primary, #0d6efd);
+}
+
+.event-actions .event-action-ai:hover {
+    background-color: var(--sms-primary, #0d6efd);
+    color: #fff;
+}
+
+/* Event AI Description Result Preview Box */
+.cocurricular-event-ai-card {
+    background-color: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.16);
+}
+
+[data-theme="dark"] .cocurricular-event-ai-card {
+    background-color: rgba(30, 58, 138, 0.18);
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.cocurricular-event-ai-result-box {
+    background: rgba(59, 130, 246, 0.03);
+    border-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+[data-theme="dark"] .cocurricular-event-ai-result-box {
+    background: rgba(30, 58, 138, 0.15);
+    border-color: rgba(96, 165, 250, 0.25) !important;
+}
+
+/* Event AI Modal Context Box */
+.cocurricular-event-context-box {
+    background-color: var(--sms-surface-muted, #f8fafc);
+    border: 1px solid var(--sms-border, #e2e8f0);
+}
+
+[data-theme="dark"] .cocurricular-event-context-box {
+    background-color: rgba(15, 23, 42, 0.5);
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+#eventAiModal .modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+[data-theme="dark"] #eventAiModal #eventAiContextTitle {
+    color: #f8fafc;
+}
+
+
+
+
+
